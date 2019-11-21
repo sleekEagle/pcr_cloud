@@ -16,10 +16,10 @@ this code reads paramenters from parameters.json
 and adds them as environment variables.
 Call this code once you change aby parameters from parameters.json
 '''
-
 #find the parameter.json file by searching in the parent directory
 def find_parameter_file():
-    current_dir=os.getcwd() 
+    #current_dir=os.getcwd() 
+    current_dir="C:/Users/Obesity_Project/Desktop/Patient-Caregiver Relationship/Patient-Caregiver-Relationship/cloud_upload/pcr_cloud"
     for dirpath,_,filenames in os.walk(current_dir):
         for f in filenames:
             full_path= os.path.abspath(os.path.join(dirpath, f))
