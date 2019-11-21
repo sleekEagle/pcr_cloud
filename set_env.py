@@ -16,7 +16,7 @@ Call this code once you change aby parameters from parameters.json
 '''
 #read paramenters from file
 def read_param():
-    with open('/home/sleek_eagle/research/PCR_cloud/parameters.json', 'r') as f:
+    with open('../parameters.json', 'r') as f:
         param = json.load(f)[0]
     env_vars = param['env_var']
     #write parameters to environment variables

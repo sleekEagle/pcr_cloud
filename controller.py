@@ -54,8 +54,8 @@ def read_params():
     s3_upload_time_s=int(set_env.get_env('s3_file_upload_time_s'))
     
 
-
+read_params()
 read_param_thread=RepeatedTimer(10,read_params)
 upload_thread=RepeatedTimer(s3_upload_time_s,s3_upload_task)
-
-read_param_thread.stop()
+#read_param_thread.stop()
+#set_env.get_env('s3_upload_dirs')

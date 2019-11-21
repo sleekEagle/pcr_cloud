@@ -13,6 +13,8 @@ import s3_functions
 
 set_env.read_param()
 s3_functions.get_bucket()
-s3_functions.get_item_num()
+num=s3_functions.get_item_num()
+if(num>0):
+	print('connection success...')
 
 
