@@ -24,12 +24,11 @@ column_list=columns.split(',')
 
 
 #read the log file
-path = '/home/sleek_eagle/research/PCR_cloud/data/2019-10-19_MonitorLog.txt'
-f = open(path, 'r')
-lines = f.readlines()
-f.close()
-
-
+def read_file(file):
+    f = open(file, 'r')
+    lines = f.readlines()
+    f.close()
+    return lines
 
 host="pcr-database.c6cya7u6ocd9.us-east-2.rds.amazonaws.com"
 port=3306
@@ -89,31 +88,50 @@ def insert_raw(line):
         fields[i]
         values+=fields[i] + ","
     values=values[0:-1]
+    values+="," + "\"" + dep_id + "\""
     query='insert into M2G (' + columns + ') values (' + values + ');'
+    res=-1
     try:
         conn = pymysql.connect(host, user=user,port=port,passwd=password, db=dbname)
         cursor=conn.cursor() 
-        cursor.execute(query)
+        res=cursor.execute(query)
     except Exception as e:
         print(e)
     finally:
         conn.commit()
         cursor.close()
+        return res
         
 #get log file name form db_date
-def get_file_name_fromdb_date(db_date):
-    last_db_date='2019-10-19 17:50:41.090000'
-    date=last_db_date.split(' ')[0]
+def get_file_name_fromdb_date(db_ts):
+    date=db_ts.split(' ')[0]
     name=date+"_MonitorLog.txt"
     return name
 
+def get_ts(line):
+    return line.split(',')[0]
+
+path="/home/sleek_eagle/research/PCR_cloud/data/m2g_logs/"
+
+file_names=get_sorted_file_names()
 
 last_db_raw=get_last_entry()
-last_db_ts=last_db_raw[0][2]
-last_db_date=last_db_ts.split(' ')[0]
-file_name=get_file_name_fromdb_date(last_db_date)
+last_db_ts="-1"
+file_name=file_names[0]
+if(len(last_db_raw) > 0):
+    last_db_ts=last_db_raw[0][2]
+    file_name=get_file_name_fromdb_date(last_db_ts)
+for file in file_names:
+    if(file<file_name):
+        continue
+    lines=read_file(path+file)
+    print(file)
+    for line in lines:
+        ts=get_ts(line)
+        if(ts > last_db_ts):
+            res=insert_raw(line)
+            print(res)
 
-    
     
 path = '/home/sleek_eagle/research/PCR_cloud/tmp.txt'
 f = open(path, 'r')

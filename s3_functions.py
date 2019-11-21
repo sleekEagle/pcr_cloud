@@ -20,14 +20,27 @@ def get_bucket():
     )
     global pcr_storage
     pcr_storage=s3.Bucket('pcr-storage')
-
+    
 #list all items in the bucket
 def list_items():
     obj_list=[]
-    for obj in pcr_storage.objects.all():
-        obj_list.append(obj.key)
+    try:
+        all_objects=pcr_storage.objects.all()
+        for obj in all_objects:
+            obj_list.append(obj.key)
+    except Exception as e:
+        print(e)
+        return -1
     return obj_list
 
+#list all items in the bucket
+def get_item_num():
+    try:
+        l=len(list(pcr_storage.objects.all()))
+    except Exception as e:
+        print(e)
+        return -1
+    return l
 #put object into bucket
 def upload_file(file_name,dir_name):
     name=file_name.split('/')[-1]
@@ -42,4 +55,3 @@ def download_file(target_file,cloud_file):
         pcr_storage.download_file(Key=cloud_file,Filename=target_file)
     except Exception as e:
         print(str(e))
-
