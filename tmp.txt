@@ -1,1 +1,0 @@
-insert into M2G (ts) values ("this is popopop");

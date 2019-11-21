@@ -14,51 +14,53 @@ import pymysql
 import re
 
 
-
-
-#read m2g fields paramenters from file
-with open('/home/sleek_eagle/research/PCR_cloud/parameters.json', 'r') as f:
-    param = json.load(f)[0]
-columns = param['param']['m2g_fields']
-column_list=columns.split(',')
-
-
 #read the log file
 def read_file(file):
-    f = open(file, 'r')
+    set_env.read_param()
+    try:
+        path=set_env.get_env('m2g_log_dir')
+    except Exception as e:
+        print(e)
+    
+    f = open(path+"/"+file, 'r')
     lines = f.readlines()
     f.close()
     return lines
 
-host="pcr-database.c6cya7u6ocd9.us-east-2.rds.amazonaws.com"
-port=3306
-dbname="pcr_data"
-user="admin"
-password="poloBolo1234"
-
-
-
 def get_sorted_file_names():
-    path='/home/sleek_eagle/research/PCR_cloud/data/m2g_logs/'
-    file_names = [f for f in listdir(path) if isfile(join(path, f))]
-    file_names.sort(reverse=False)
+    set_env.read_param()
+    try:
+        path=set_env.get_env('m2g_log_dir')
+    except Exception as e:
+        print(e)
+    try:
+        file_names = [f for f in listdir(path) if isfile(join(path, f))]
+        file_names.sort(reverse=False)
+    except Exception as e:
+        print(e)
+        return -1
     return file_names
 
 def setup():
     set_env.read_param()
-    host="pcr-database.c6cya7u6ocd9.us-east-2.rds.amazonaws.com"
-    port=3306
-    dbname="pcr_data"
-    user="admin"
-    password="poloBolo1234"
-    global conn
-    conn = pymysql.connect(host, user=user,port=port,passwd=password, db=dbname)
-    global dep_id
+    global dep_id,conn,host,port,dbname,user,password,dep_id,columns
     try:
+        host=set_env.get_env('rds_host')
+        port=int(set_env.get_env('rds_port'))
+        dbname=set_env.get_env('rds_db_name')
+        user=set_env.get_env('rds_user')
+        password=set_env.get_env('rds_password')
         dep_id=set_env.get_env('dep_id')
-    except:
-        print('env var not found..')
-        
+        columns=set_env.get_env('m2g_fields')
+    except Exception as e:
+        print(e)
+    try:
+        conn = pymysql.connect(host, user=user,port=port,passwd=password, db=dbname)
+        if(not (type(conn) == pymysql.connections.Connection)):
+            raise Exception("counld not obtain propoer connection to RDS...")
+    except Exception as e:
+        print(e)
+    
 
 #get the last enrey of the table which came from this deployment
 def get_last_entry():   
@@ -76,7 +78,7 @@ def get_last_entry():
         cursor.close()
         return row
 
-line='2019-10-19 17:51:13.808000,laptop,discMemeory,True,[\'M2FED.Monitor@gmail.com\'],[DiscCheckThread] popo is OK.'
+#line='2019-10-19 17:51:13.808000,laptop,discMemeory,True,[\'M2FED.Monitor@gmail.com\'],[DiscCheckThread] popo is OK.'
 #add raw to table
 def insert_raw(line):
     fields=line.split(',')
@@ -111,60 +113,28 @@ def get_file_name_fromdb_date(db_ts):
 def get_ts(line):
     return line.split(',')[0]
 
-path="/home/sleek_eagle/research/PCR_cloud/data/m2g_logs/"
-
-file_names=get_sorted_file_names()
-
-last_db_raw=get_last_entry()
-last_db_ts="-1"
-file_name=file_names[0]
-if(len(last_db_raw) > 0):
-    last_db_ts=last_db_raw[0][2]
-    file_name=get_file_name_fromdb_date(last_db_ts)
-for file in file_names:
-    if(file<file_name):
-        continue
-    lines=read_file(path+file)
-    print(file)
-    for line in lines:
-        ts=get_ts(line)
-        if(ts > last_db_ts):
-            res=insert_raw(line)
-            print(res)
-
-    
-path = '/home/sleek_eagle/research/PCR_cloud/tmp.txt'
-f = open(path, 'r')
-lines = f.readlines()    
-query=lines[0][0:-1]
-cursorObject=conn.cursor() 
-cursorObject.execute(query)
-
-file_names=get_sorted_file_names()
-for file in file_names:
-    if(file < file_name):
-        continue
-    #do stuff
+def upload_missing_entries():
+    file_names=get_sorted_file_names()
+    last_db_raw=get_last_entry()
+    last_db_ts="-1"
+    file_name=file_names[0]
+    if(len(last_db_raw) > 0):
+        last_db_ts=last_db_raw[0][2]
+        file_name=get_file_name_fromdb_date(last_db_ts)
+    for file in file_names:
+        if(file<file_name):
+            continue
+        lines=read_file(file)
+        print(lines[0])
+        for line in lines:
+            ts=get_ts(line)
+            print(ts)
+            if(ts > last_db_ts):
+                print('this')
+                res=insert_raw(line)
+                print(res)
 
 
-conn = pymysql.connect(host, user=user,port=port,passwd=password, db=dbname)
-cursor=conn.cursor() 
-sqlquery="SELECT * FROM M2G WHERE (M2G.dep_id=\"" + str(dep_id) +  "\") AND (M2G.ts IS NOT NULL) ORDER BY -p_key LIMIT 100"
-cursor.execute(sqlquery)
-row=cursor.fetchall()  
-row
-
-conn = pymysql.connect(host, user=user,port=port,passwd=password, db=dbname)
-cursorObject=conn.cursor() 
-sqlquery="""SELECT * FROM M2G WHERE (M2G.dep_id='boeoooo') AND (ts IS NOT NULL) ORDER BY -p_key LIMIT 100"""
-sqlquery="SELECT * FROM pcr_data.M2G WHERE M2G.dep_id='boeoooo'"
-cursorObject.execute(sqlquery)
-row=cursor.fetchall()  
-row
-
-conn.commit()
-cursorObject.close()
-row=cursorObject.fetchall()  
 
 
 

@@ -9,6 +9,7 @@ Created on Wed Nov 13 10:44:47 2019
 from threading import Timer
 import set_env
 import s3_upload
+import m2g
 
 
 class RepeatedTimer(object):
@@ -37,25 +38,35 @@ class RepeatedTimer(object):
         self.is_running = False
 
 
-
-
-
 def s3_upload_task():
-  print('uploading missing data...')
+  print('uploading missing data to S3...')
   s3_upload.upload_file_not_in_cloud()
+  print('done uploading missing data to S3')
  
 #read parameters periodically from parameters.json
 def read_params():
     print('reading parameters form parameters.json...')
     #read parameters to environment variables from the parameters.json file
     set_env.read_param()
-    global s3_upload_time_s
+    global s3_upload_time_s,m2g_upload_time_s
     #the frequency which we upload data to s3
     s3_upload_time_s=int(set_env.get_env('s3_file_upload_time_s'))
+    m2g_upload_time_s=int(set_env.get_env('m2g_upload_time_s'))
+    print('parameters read from parameters.json.')
+    
+#upload missing data to m2g database
+def m2fed_upload_task():
+    print("uploading m2g data...")
+    m2g.setup()
+    m2g.upload_missing_entries()
+    print("done uploading m2g data.")
+    
     
 
 read_params()
 read_param_thread=RepeatedTimer(10,read_params)
-upload_thread=RepeatedTimer(s3_upload_time_s,s3_upload_task)
-#read_param_thread.stop()
+s3_upload_thread=RepeatedTimer(s3_upload_time_s,s3_upload_task)
+m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2fed_upload_task)
+
+#m2g_upload_thread.stop()
 #set_env.get_env('s3_upload_dirs')
