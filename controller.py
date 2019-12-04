@@ -10,6 +10,7 @@ from threading import Timer
 import set_env
 import s3_upload
 import m2g
+import ema_db
 
 
 class RepeatedTimer(object):
@@ -61,12 +62,21 @@ def m2fed_upload_task():
     m2g.upload_missing_entries()
     print("done uploading m2g data.")
     
+#uupload missing data to ema tables
+def ema_upload_task():
+    print("uploading ema data...")
+    ema_db.upload_tables()
+    print("done uploading ema tables.")
+    
+    
     
 
 read_params()
 read_param_thread=RepeatedTimer(10,read_params)
 s3_upload_thread=RepeatedTimer(s3_upload_time_s,s3_upload_task)
 m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2fed_upload_task)
+m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2fed_upload_task)
+
 
 #m2g_upload_thread.stop()
 #set_env.get_env('s3_upload_dirs')
