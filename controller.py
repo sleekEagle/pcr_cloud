@@ -65,18 +65,16 @@ def m2fed_upload_task():
 #uupload missing data to ema tables
 def ema_upload_task():
     print("uploading ema data...")
-    ema_db.upload_tables()
+    ema_db.upoload_missing_data_ts()
     print("done uploading ema tables.")
-    
-    
-    
-
+     
 read_params()
 read_param_thread=RepeatedTimer(10,read_params)
 s3_upload_thread=RepeatedTimer(s3_upload_time_s,s3_upload_task)
 m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2fed_upload_task)
-m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2fed_upload_task)
-
+#upload ema_phones table ones
+ema_db.upload_fixed_tables()
+m2g_upload_thread=RepeatedTimer(60*60*3,ema_upload_task)
 
 #m2g_upload_thread.stop()
 #set_env.get_env('s3_upload_dirs')

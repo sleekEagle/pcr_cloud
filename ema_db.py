@@ -16,6 +16,7 @@ cloud database funcitons
 def connect_cloud():
     set_env.read_param()
     global dep_id,conn_cloud,host,port,dbname,user,password,dep_id,columns
+    conn_cloud=-1
     try:
         host=set_env.get_env('rds_host')
         port=int(set_env.get_env('rds_port'))
@@ -40,17 +41,48 @@ local database funcitons
 *************************************'''
 
 def connect_local():
-    global con_local
-    con_local=pymysql.connect('localhost','root','','ema')
+    global conn_local
+    conn_local=-1
+    try:
+        conn_local=pymysql.connect('localhost','root','','ema')
+    except Exception as e:
+        print(e)
+        
+def set_local_updated(conn,table_name,primary_key_name,primary_key):
+    cursor_local=conn.cursor()   
+    cursor_local.execute("UPDATE " + table_name +" SET uploaded=1 WHERE "+primary_key_name+"=\""+primary_key+"\"")
+    conn.commit()
+    
+def get_local_next_unuploaded_pkey(conn,table_name,pkey):
+    p_key=-1
+    try:
+        cursor_local=conn.cursor() 
+        cursor_local.execute("SELECT " +pkey+ " FROM " + table_name +" WHERE uploaded=0 LIMIT 1")
+        res=cursor_local.fetchall() 
+        p_key=res[0][0]
+    except Exception as e:
+        print(e)
+    return p_key
+        
+
+'''************************************
+*************************************
+common database funcitons
+**************************************
+*************************************'''
+def get_all_rows(cursor,table_name):
+    cursor.execute("SELECT * FROM "+table_name)
+    cols=cursor.fetchall() 
+    return cols
     
 def get_columns(cursor,table_name):
     cursor.execute("SHOW COLUMNS from " + table_name)
     columns=cursor.fetchall()
     return columns   
 
-def get_local_all_tables():
-    cursor_local.execute("SHOW TABLES")    
-    tables = cursor_local.fetchall()
+def get_local_all_tables(cursor):
+    cursor.execute("SHOW TABLES")    
+    tables = cursor.fetchall()
     return tables
 
 def get_primary_key_name(cursor,table_name):
@@ -58,47 +90,165 @@ def get_primary_key_name(cursor,table_name):
     res=cursor.fetchall()
     return res[0][4]
 
-def get_local_row(table_name,primary_key):
-    cursor_local.execute("SELECT * FROM " + table_name +" where ema_phones.phoneid = \""+primary_key+"\"")
-    res=cursor_local.fetchall() 
+def get_row(cursor,table_name,primary_key):
+    cursor.execute("SELECT * FROM " + table_name +" where ema_phones.phoneid = \""+primary_key+"\"")
+    res=cursor.fetchall() 
     return res[0]  
 
-col_name='port'
 def get_row_col(cursor,table_name,primary_key,col_name):
     cursor.execute("SELECT "+col_name+" FROM " + table_name +" where ema_phones.phoneid = \""+primary_key+"\"")
     res=cursor.fetchall() 
     return res[0][0]
 
-def get_local_row_num(table_name):
-    cursor_local.execute("SELECT COUNT(*) FROM " + table_name)
-    res=cursor_local.fetchall() 
+def get_row_num(cursor,table_name):
+    cursor.execute("SELECT COUNT(*) FROM " + table_name)
+    res=cursor.fetchall() 
     return res[0][0]
 
-def local_add_uploaded_column(table_name):
+def add_uploaded_column(cursor,table_name):
     try:
-        cursor_local.execute("ALTER TABLE " + table_name + " ADD COLUMN uploaded INT NOT NULL")
+        cursor.execute("ALTER TABLE " + table_name + " ADD COLUMN uploaded INT NOT NULL")
     except Exception as e:
         print(e)
-
-def set_local_updated(cursor_local,table_name,primary_key_name,primary_key):
-    cursor_local=con_local.cursor()   
-    cursor_local.execute("UPDATE " + table_name +" SET uploaded=1 WHERE "+primary_key_name+"=\""+primary_key+"\"")
-    con_local.commit()    
-
-def get_local_next_unuploaded_pkey(cursor_local,table_name,pkey):
-    p_key=-1
-    try:
-        cursor_local.execute("SELECT " +pkey+ " FROM " + table_name +" WHERE uploaded=0 LIMIT 1")
-        res=cursor_local.fetchall() 
-        p_key=res[0][0]
-    except Exception as e:
-        print(e)
-    return p_key
     
+def get_col_list_from_tuple(cols):
+    col_names=[]
+    for col_name in cols:
+        col_names.append(col_name[0])
+    return col_names
+
+    
+def insert_row_to_cloud(cursor_local,cursor_cloud,table_name,row):
+    res=-1
+    try:
+        local_cols=get_columns(cursor_local,table_name)    
+        local_cols=get_col_list_from_tuple(local_cols)
+        local_cols=str(local_cols)[1:-1].replace("'", "")
+        local_cols+=',dep_id'
+    
+        local_row=list(row)
+        local_row_str=str([str(l) for l in local_row])[1:-1]
+        local_row_str+=(',\''+dep_id+'\'')
+        
+        res=cursor_cloud.execute("INSERT INTO "+table_name+" (" + local_cols + ") values (" + local_row_str + ")")
+    except Exception as e:
+        print(e)
+    finally:
+        return res
+  
+def upload_all_rows(table_name):
+    connect_local()
+    connect_cloud()
+    if((type(conn_local)==pymysql.connections.Connection) and(type(conn_cloud)==pymysql.connections.Connection)):
+        cursor_local=conn_local.cursor() 
+        cursor_cloud=conn_cloud.cursor()         
+        rows=get_all_rows(cursor_local,table_name)
+        print(len(rows))
+        for row in rows:
+            insert_row_to_cloud(cursor_local,cursor_cloud,table_name,row)
+            conn_cloud.commit()
+        cursor_local.close()
+        cursor_cloud.close()
+        print('done')
+    else:
+        print("couldn't connect to databases......:(")
+    
+    
+def get_unique_ts_list(cursor,table_name):
+    #cursor.execute("SELECT DISTINCT ts FROM "+table_name+" WHERE dep_id=\""+str(dep_id)+"\" AND (ts IS NOT NULL) ORDER BY -ts LIMIT 1")
+    cursor.execute("SELECT DISTINCT ts FROM "+table_name+" WHERE dep_id=\""+str(dep_id)+"\" ORDER BY -ts")
+    ts=cursor.fetchall() 
+    ts_list=[str(item[0]) for item in ts]
+    return ts_list
+
+def get_local_unique_ts_list(cursor,table_name):
+    #cursor.execute("SELECT DISTINCT ts FROM "+table_name+" WHERE dep_id=\""+str(dep_id)+"\" AND (ts IS NOT NULL) ORDER BY -ts LIMIT 1")
+    cursor.execute("SELECT DISTINCT ts FROM "+table_name+" ORDER BY -ts")
+    ts=cursor.fetchall() 
+    ts_list=[str(item[0]) for item in ts]
+    return ts_list
+
+
+def get_rows_with_value(cursor,table_name,col_name,value):
+    cursor.execute("SELECT * FROM "+table_name+" WHERE "+col_name +"=\""+value+"\"")
+    rows=cursor.fetchall()
+    return rows
+
+def get_num_rows_with_value(cursor,table_name,col_name,value):
+    cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE "+col_name +"=\""+value+"\"")
+    count=cursor.fetchall()[0][0]
+    return count
+
+
+def delete_rows_with_value(connection,cursor,table_name,col_name,value):
+    cursor.execute("DELETE FROM "+table_name+" WHERE "+col_name +"=\""+value+"\"")
+    connection.commit()
+
+
+
+
+
+
+'''************************************
+*************************************
+functionalities
+**************************************
+*************************************'''
+
+#upload ema_phones and ema_recommendation. This is a one time job for each deployment
+def upload_fixed_tables():
+    upload_all_rows('ema_phones')
+
+#upload all missing data for ema_data table
+def upoload_missing_data_ts(table_name):
+    connect_local()
+    connect_cloud()
+    if((type(conn_local)==pymysql.connections.Connection) and(type(conn_cloud)==pymysql.connections.Connection)):
+        try:
+            print('uploading data....')
+            cursor_local=conn_local.cursor() 
+            cursor_cloud=conn_cloud.cursor() 
+            
+            cloud_unique_ts_list=get_unique_ts_list(cursor_cloud,table_name)
+            local_uniqie_ts_list=get_local_unique_ts_list(cursor_local,table_name)
+            
+            for ts in local_uniqie_ts_list:
+                ts_upload=False
+                if(ts in cloud_unique_ts_list):
+                    num_local=get_num_rows_with_value(cursor_local,table_name,'ts',ts)
+                    num_cloud=get_num_rows_with_value(cursor_cloud,table_name,'ts',ts)
+                    if(num_local>num_cloud):
+                        ts_upload=True
+                else:
+                    ts_upload=True
+                if(ts_upload):
+                    print(ts)
+                    #delete all rows with this ts
+                    col_name='ts'
+                    print(ts)
+                    delete_rows_with_value(conn_cloud,cursor_cloud,table_name,col_name,ts)
+                    #upload all rows with this ts
+                    rows=get_rows_with_value(cursor_local,table_name,col_name,ts) 
+                    for i,row in enumerate(rows):
+                        res=insert_row_to_cloud(cursor_local,cursor_cloud,table_name,row)
+                        if(res==-1):
+                            print('did not upload...')
+                        conn_cloud.commit()
+                        if(i%100==0):
+                            print(str(i) + " out of  " + str(len(rows)) + " is done")
+               
+            cursor_local.close()
+            cursor_cloud.close()
+            print('finished uploading data.')
+        except Exception as e:
+            print(e)
+    else:
+        print("couldn't connect to databses....... :(")
+        
 def upload_unuploaded_raws(table_name):
     connect_local()
     connect_cloud()
-    cursor_local=con_local.cursor() 
+    cursor_local=conn_local.cursor() 
     cursor_cloud=conn_cloud.cursor()
     
     cloud_pkey_name=get_primary_key_name(cursor_cloud,table_name)
@@ -115,7 +265,7 @@ def upload_unuploaded_raws(table_name):
             val=get_row_col(cursor_local,table_name,unuploaded_pkey,column[0])
             val_list+=(",\'"+str(val)+"\'")
             
-        cursor_cloud.execute("INSERT iNTO "+table_name+" (" + col_names + ") values (" + val_list + ")")
+        cursor_cloud.execute("INSERT INTO "+table_name+" (" + col_names + ") values (" + val_list + ")")
         conn_cloud.commit()
         set_local_updated(cursor_local,table_name,local_pkey_name,unuploaded_pkey)
         print('uploaded 1 row...')
@@ -124,8 +274,17 @@ def upload_unuploaded_raws(table_name):
     cursor_local.close()
     cursor_cloud.close()
 
-def upload_tables():
-    upload_unuploaded_raws('ema_phones')
+
+
+
+
+table_name='ema_phones'
+
+
+ 
+
+    
+
 
     
 
