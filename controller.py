@@ -11,6 +11,7 @@ import set_env
 import s3_upload
 import m2g
 import ema_db
+import dep_data
 
 
 class RepeatedTimer(object):
@@ -56,7 +57,7 @@ def read_params():
     print('parameters read from parameters.json.')
     
 #upload missing data to m2g database
-def m2fed_upload_task():
+def m2g_upload_task():
     print("uploading m2g data...")
     m2g.setup()
     m2g.upload_missing_entries()
@@ -64,17 +65,29 @@ def m2fed_upload_task():
     
 #uupload missing data to ema tables
 def ema_upload_task():
-    print("uploading ema data...")
-    ema_db.upoload_missing_data_ts()
-    print("done uploading ema tables.")
-     
+    print("updating ema data table...")
+    ema_db.upoload_missing_data_ts('ema_data')
+    print("done updating ema data table.")
+    print("updating reward data...")
+    ema_db.upload_unuploaded_raws('reward_data')
+    print("done updating reward data table.")
+ 
+'''
+#read parameter from file
 read_params()
-read_param_thread=RepeatedTimer(10,read_params)
+read_param_thread=RepeatedTimer(60,read_params)
+
+#schedule recurring tasks
 s3_upload_thread=RepeatedTimer(s3_upload_time_s,s3_upload_task)
-m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2fed_upload_task)
+m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2g_upload_task)
+ema_upload_thread=RepeatedTimer(600,ema_upload_task)
+
+#upload just once tasks
 #upload ema_phones table ones
 ema_db.upload_fixed_tables()
-m2g_upload_thread=RepeatedTimer(60*60*3,ema_upload_task)
+dep_data.upload_dep_data_table()
 
 #m2g_upload_thread.stop()
 #set_env.get_env('s3_upload_dirs')
+'''
+

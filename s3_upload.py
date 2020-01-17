@@ -41,6 +41,8 @@ def get_s3_files():
 
 def get_local_files():
     paths=set_env.get_env('s3_upload_dirs').split(',')
+    project_dir=set_env.get_project_dir(-3)[:-1]
+    paths=[project_dir+path for path in paths]
     file_list=[] 
     for path in paths:
         files = [(path + "/" + f) for f in listdir(path) if isfile(join(path, f))]

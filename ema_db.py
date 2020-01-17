@@ -52,17 +52,26 @@ def set_local_updated(conn,table_name,primary_key_name,primary_key):
     cursor_local=conn.cursor()   
     cursor_local.execute("UPDATE " + table_name +" SET uploaded=1 WHERE "+primary_key_name+"=\""+primary_key+"\"")
     conn.commit()
+
+    
     
 def get_local_next_unuploaded_pkey(conn,table_name,pkey):
     p_key=-1
     try:
-        cursor_local=conn.cursor() 
-        cursor_local.execute("SELECT " +pkey+ " FROM " + table_name +" WHERE uploaded=0 LIMIT 1")
-        res=cursor_local.fetchall() 
+        conn.execute("SELECT " +pkey+ " FROM " + table_name +" WHERE uploaded=0 LIMIT 1")
+        res=conn.fetchall() 
         p_key=res[0][0]
     except Exception as e:
         print(e)
     return p_key
+
+def get_local_next_unuploaded_row(conn,table_name):
+    try:
+        conn.execute("SELECT * FROM " + table_name + " WHERE Uploaded=0 LIMIT 1")
+        res=conn.fetchall() 
+    except Exception as e:
+        print(e)
+    return res
         
 
 '''************************************
@@ -95,8 +104,9 @@ def get_row(cursor,table_name,primary_key):
     res=cursor.fetchall() 
     return res[0]  
 
-def get_row_col(cursor,table_name,primary_key,col_name):
-    cursor.execute("SELECT "+col_name+" FROM " + table_name +" where ema_phones.phoneid = \""+primary_key+"\"")
+#return column which has the given primary key
+def get_row_col(cursor,table_name,primary_key_name,primary_key_value,col_name):
+    cursor.execute("SELECT "+col_name+" FROM " + table_name +" where " + primary_key_name + " = \""+primary_key_value+"\"")
     res=cursor.fetchall() 
     return res[0][0]
 
@@ -253,32 +263,33 @@ def upload_unuploaded_raws(table_name):
     
     cloud_pkey_name=get_primary_key_name(cursor_cloud,table_name)
     cloud_columns=get_columns(cursor_cloud,table_name)
+    local_columns=get_columns(cursor_local,table_name)
+    local_columns=[item[0] for item in local_columns]
     local_pkey_name=get_primary_key_name(cursor_local,table_name)
-    unuploaded_pkey=get_local_next_unuploaded_pkey(cursor_local,table_name,local_pkey_name)
-    while(unuploaded_pkey>-1):
+    next_unuploaded_pkey=get_local_next_unuploaded_pkey(cursor_local,table_name,local_pkey_name)
+    while(next_unuploaded_pkey>0):
         col_names="dep_id"
-        val_list="\'"+str(dep_id)+"\'"
+        val_list="\'"+str(dep_id)+"\',"
         for column in cloud_columns:
-            if((column[0]==cloud_pkey_name) or (column[0]=='dep_id')):
+            if((column[0]==cloud_pkey_name) or (column[0]=='dep_id') or not(column[0] in local_columns)):
                 continue
             col_names+=(','+column[0])
-            val=get_row_col(cursor_local,table_name,unuploaded_pkey,column[0])
-            val_list+=(",\'"+str(val)+"\'")
+            val=get_row_col(cursor_local,table_name,local_pkey_name,next_unuploaded_pkey,column[0])
+            val_list+="\'"+str(val)+"\',"
+        val_list=val_list[:-1]
             
         cursor_cloud.execute("INSERT INTO "+table_name+" (" + col_names + ") values (" + val_list + ")")
         conn_cloud.commit()
-        set_local_updated(cursor_local,table_name,local_pkey_name,unuploaded_pkey)
+        set_local_updated(conn_local,table_name,local_pkey_name,next_unuploaded_pkey)
         print('uploaded 1 row...')
-        unuploaded_pkey=get_local_next_unuploaded_pkey(cursor_local,table_name,local_pkey_name)
+        next_unuploaded_pkey=get_local_next_unuploaded_pkey(cursor_local,table_name,local_pkey_name)
+        
     print("No (more) data to upload")
     cursor_local.close()
     cursor_cloud.close()
+    
 
 
-
-
-
-table_name='ema_phones'
 
 
  

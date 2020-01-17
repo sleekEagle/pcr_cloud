@@ -10,16 +10,24 @@ import json
 import os
 from os import listdir
 from os.path import isfile, join
+import controller
 
 '''
 this code reads paramenters from parameters.json 
 and adds them as environment variables.
 Call this code once you change aby parameters from parameters.json
 '''
+
+def get_project_dir(level_up=-1):
+    path=controller.__file__
+    l=path.split('\\')
+    current_dir='/'.join(l[:level_up])
+    current_dir+='/'
+    return current_dir
+
 #find the parameter.json file by searching in the parent directory
 def find_parameter_file():
-    #current_dir=os.getcwd() 
-    current_dir="C:/Users/Obesity_Project/Desktop/Patient-Caregiver Relationship/Patient-Caregiver-Relationship/cloud_upload/pcr_cloud"
+    current_dir=get_project_dir()
     for dirpath,_,filenames in os.walk(current_dir):
         for f in filenames:
             full_path= os.path.abspath(os.path.join(dirpath, f))
