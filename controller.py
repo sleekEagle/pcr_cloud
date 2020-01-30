@@ -59,7 +59,6 @@ def read_params():
 #upload missing data to m2g database
 def m2g_upload_task():
     print("uploading m2g data...")
-    m2g.setup()
     m2g.upload_missing_entries()
     print("done uploading m2g data.")
     
@@ -71,10 +70,13 @@ def ema_upload_task():
     print("updating reward data...")
     ema_db.upload_unuploaded_raws('reward_data')
     print("done updating reward data table.")
+    print("updating storing data...")
+    ema_db.upload_unuploaded_raws('ema_storing_data')
+    print("done updating storing data table.")
  
-'''
+
 #read parameter from file
-read_params()
+set_env.read_param()
 read_param_thread=RepeatedTimer(60,read_params)
 
 #schedule recurring tasks
@@ -87,7 +89,7 @@ ema_upload_thread=RepeatedTimer(600,ema_upload_task)
 ema_db.upload_fixed_tables()
 dep_data.upload_dep_data_table()
 
-#m2g_upload_thread.stop()
+#read_param_thread.stop()
 #set_env.get_env('s3_upload_dirs')
-'''
+
 

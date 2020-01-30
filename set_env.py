@@ -10,7 +10,7 @@ import json
 import os
 from os import listdir
 from os.path import isfile, join
-import controller
+import dep_data
 
 '''
 this code reads paramenters from parameters.json 
@@ -19,7 +19,7 @@ Call this code once you change aby parameters from parameters.json
 '''
 
 def get_project_dir(level_up=-1):
-    path=controller.__file__
+    path=dep_data.__file__
     l=path.split('\\')
     current_dir='/'.join(l[:level_up])
     current_dir+='/'
@@ -48,8 +48,14 @@ def read_param():
                 os.environ[key]=str(value)
         except Exception as e:
             print(e)
+            print("lalaaa")
     else:
         raise Exception("cannot find a parameters.json file in the parent directory...")
+    #set dep_id environ variable
+    dep_id=dep_data.get_dep_id(get_project_dir(-3))
+    os.environ['dep_id']=str(dep_id)
+    
+    
         
         
 def get_env(name):

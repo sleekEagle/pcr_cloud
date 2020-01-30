@@ -106,7 +106,7 @@ def get_row(cursor,table_name,primary_key):
 
 #return column which has the given primary key
 def get_row_col(cursor,table_name,primary_key_name,primary_key_value,col_name):
-    cursor.execute("SELECT "+col_name+" FROM " + table_name +" where " + primary_key_name + " = \""+primary_key_value+"\"")
+    cursor.execute("SELECT "+col_name+" FROM " + table_name +" where " + primary_key_name + " = \""+str(primary_key_value)+"\"")
     res=cursor.fetchall() 
     return res[0][0]
 
@@ -140,10 +140,13 @@ def insert_row_to_cloud(cursor_local,cursor_cloud,table_name,row):
         local_row_str=str([str(l) for l in local_row])[1:-1]
         local_row_str+=(',\''+dep_id+'\'')
         
-        res=cursor_cloud.execute("INSERT INTO "+table_name+" (" + local_cols + ") values (" + local_row_str + ")")
+        cursor=conn_cloud.cursor() 
+        res=cursor.execute("INSERT INTO "+table_name+" (" + local_cols + ") values (" + local_row_str + ")")
     except Exception as e:
         print(e)
     finally:
+        conn_cloud.commit()
+        cursor.close()
         return res
   
 def upload_all_rows(table_name):
@@ -267,7 +270,7 @@ def upload_unuploaded_raws(table_name):
     local_columns=[item[0] for item in local_columns]
     local_pkey_name=get_primary_key_name(cursor_local,table_name)
     next_unuploaded_pkey=get_local_next_unuploaded_pkey(cursor_local,table_name,local_pkey_name)
-    while(next_unuploaded_pkey>0):
+    while(not(next_unuploaded_pkey==-1)):
         col_names="dep_id"
         val_list="\'"+str(dep_id)+"\',"
         for column in cloud_columns:
@@ -280,7 +283,7 @@ def upload_unuploaded_raws(table_name):
             
         cursor_cloud.execute("INSERT INTO "+table_name+" (" + col_names + ") values (" + val_list + ")")
         conn_cloud.commit()
-        set_local_updated(conn_local,table_name,local_pkey_name,next_unuploaded_pkey)
+        set_local_updated(conn_local,table_name,local_pkey_name,str(next_unuploaded_pkey))
         print('uploaded 1 row...')
         next_unuploaded_pkey=get_local_next_unuploaded_pkey(cursor_local,table_name,local_pkey_name)
         
@@ -288,6 +291,9 @@ def upload_unuploaded_raws(table_name):
     cursor_local.close()
     cursor_cloud.close()
     
+table_name='ema_data'
+table_name='reward_data'
+
 
 
 

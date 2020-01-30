@@ -92,7 +92,21 @@ def upload_dep_data_table():
         conn_cloud.commit()
     cursor_cloud.close()
     
-    
+ 
+def get_dep_id(project_dir):
+    dep_id=-1
+    try:
+        con = sqlite3.connect(project_dir+"/"+'/DeploymentInformation.db')
+        cursorObj = con.cursor()
+        
+        table_name='DEPLOYMENT_DATA'
+        cursorObj.execute("SELECT * FROM "+table_name+" WHERE STATUS='Running' ORDER BY START_TIME DESC")
+        rows=cursorObj.fetchall()
+        last_dep_row=rows[0]
+        dep_id=int(last_dep_row[0])
+    except Exception as e:
+        print(e)
+    return dep_id
 
 
 
