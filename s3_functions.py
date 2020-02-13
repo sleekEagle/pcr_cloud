@@ -55,3 +55,21 @@ def download_file(target_file,cloud_file):
         pcr_storage.download_file(Key=cloud_file,Filename=target_file)
     except Exception as e:
         print(str(e))
+        
+def unique(list1):
+    unique_list = [] 
+    # traverse for all elements 
+    for x in list1: 
+        # check if exists in unique_list or not 
+        if x not in unique_list: 
+            unique_list.append(x) 
+    return unique_list
+
+def get_depids():
+    set_env.read_param()
+    get_bucket()            
+    items=list_items()
+    dirs=[str(item.split('/')[0]) for item in items]
+    dirs=unique(dirs)
+    ids=",".join(dirs)
+    return ids

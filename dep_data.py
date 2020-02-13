@@ -33,7 +33,9 @@ def connect_cloud():
     except Exception as e:
         print(e)
 
+#cloud operations
 
+        
 
  
 def get_table_names(con):

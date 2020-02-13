@@ -44,7 +44,7 @@ def connect_cloud():
 def read_file(f):
     set_env.read_param()
     try:
-        path=set_env.get_project_dir(-3)+set_env.get_env('m2g_log_dir')[1:]+'/'
+        path=set_env.get_project_dir(-3)+set_env.get_env('m2g_log_dir')+'/'
 
     except Exception as e:
         print(e)
@@ -57,7 +57,7 @@ def read_file(f):
 def get_sorted_file_names():
     set_env.read_param()
     try:
-        root_dir=set_env.get_project_dir(-3)+'/'
+        root_dir=set_env.get_project_dir(-3)
         path=root_dir+set_env.get_env('m2g_log_dir')
     except Exception as e:
         print(e)
@@ -138,7 +138,6 @@ def upload_missing_entries():
             ts=get_ts(line)
             print(ts)
             if(ts > last_db_ts):
-                print('this')
                 res=insert_raw(line)
                 print(res)
 

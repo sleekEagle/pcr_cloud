@@ -60,5 +60,14 @@ def read_param():
         
 def get_env(name):
     return os.environ[name]
+
+
+def set_var(key,value):
+    try:
+        os.environ[key]=str(value)
+        return 0
+    except Exception as e:
+        print(e)
+        return -1
     
 

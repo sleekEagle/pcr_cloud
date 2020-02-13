@@ -76,7 +76,7 @@ def ema_upload_task():
  
 
 #read parameter from file
-set_env.read_param()
+read_params()
 read_param_thread=RepeatedTimer(60,read_params)
 
 #schedule recurring tasks

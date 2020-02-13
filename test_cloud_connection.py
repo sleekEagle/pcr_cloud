@@ -16,7 +16,7 @@ set_env.read_param()
 s3_functions.get_bucket()
 num=s3_functions.get_item_num()
 print("S3 connection success...")
-m2g.setup()
+m2g.connect_cloud()
 print('pcr_data databse (RDS) connection success...')
 
 
