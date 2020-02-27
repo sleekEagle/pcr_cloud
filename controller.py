@@ -85,7 +85,7 @@ m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2g_upload_task)
 ema_upload_thread=RepeatedTimer(600,ema_upload_task)
 
 #upload just once tasks
-#upload ema_phones table ones
+#upload ema_phones table ones   
 ema_db.upload_fixed_tables()
 dep_data.upload_dep_data_table()
 

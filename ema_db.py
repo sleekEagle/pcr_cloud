@@ -128,43 +128,49 @@ def get_col_list_from_tuple(cols):
     return col_names
 
     
-def insert_row_to_cloud(cursor_local,cursor_cloud,table_name,row):
+def insert_row_to_cloud(table_name,row):
     res=-1
     try:
-        local_cols=get_columns(cursor_local,table_name)    
-        local_cols=get_col_list_from_tuple(local_cols)
-        local_cols=str(local_cols)[1:-1].replace("'", "")
-        local_cols+=',dep_id'
-    
-        local_row=list(row)
-        local_row_str=str([str(l) for l in local_row])[1:-1]
-        local_row_str+=(',\''+dep_id+'\'')
+        connect_local()
+        with conn_local.cursor() as cursor:
+            local_cols=get_columns(cursor,table_name)    
+            local_cols=get_col_list_from_tuple(local_cols)
+            local_cols=str(local_cols)[1:-1].replace("'", "")
+            local_cols+=',dep_id'
         
-        cursor=conn_cloud.cursor() 
-        res=cursor.execute("INSERT INTO "+table_name+" (" + local_cols + ") values (" + local_row_str + ")")
+            local_row=list(row)
+            local_row_str=str([str(l) for l in local_row])[1:-1]
+            local_row_str+=(',\''+dep_id+'\'')
+            
+        connect_cloud()
+        with conn_cloud.cursor() as cursor:
+            res=cursor.execute("INSERT INTO "+table_name+" (" + local_cols + ") values (" + local_row_str + ")")
+            conn_cloud.commit()
     except Exception as e:
         print(e)
     finally:
-        conn_cloud.commit()
-        cursor.close()
+        conn_cloud.close()
+        conn_local.close()
         return res
-  
+
+
 def upload_all_rows(table_name):
-    connect_local()
-    connect_cloud()
-    if((type(conn_local)==pymysql.connections.Connection) and(type(conn_cloud)==pymysql.connections.Connection)):
-        cursor_local=conn_local.cursor() 
-        cursor_cloud=conn_cloud.cursor()         
-        rows=get_all_rows(cursor_local,table_name)
-        print(len(rows))
-        for row in rows:
-            insert_row_to_cloud(cursor_local,cursor_cloud,table_name,row)
-            conn_cloud.commit()
-        cursor_local.close()
-        cursor_cloud.close()
-        print('done')
-    else:
-        print("couldn't connect to databases......:(")
+    try:
+        connect_local()
+        connect_cloud()
+        if((type(conn_local)==pymysql.connections.Connection) and(type(conn_cloud)==pymysql.connections.Connection)):
+            cursor_local=conn_local.cursor() 
+            rows=get_all_rows(cursor_local,table_name)
+            conn_cloud.close()
+            conn_local.close()
+            print(len(rows))
+            for row in rows:
+                insert_row_to_cloud(table_name,row)
+            print('done')
+        else:
+            print("couldn't connect to databases......:(")
+    except Exception as e:
+        print(e)
     
     
 def get_unique_ts_list(cursor,table_name):
@@ -225,11 +231,23 @@ def upoload_missing_data_ts(table_name):
             cloud_unique_ts_list=get_unique_ts_list(cursor_cloud,table_name)
             local_uniqie_ts_list=get_local_unique_ts_list(cursor_local,table_name)
             
+            conn_cloud.close()
+            conn_local.close()
+            
             for ts in local_uniqie_ts_list:
                 ts_upload=False
                 if(ts in cloud_unique_ts_list):
+                    connect_local()
+                    connect_cloud()
+                    cursor_local=conn_local.cursor() 
+                    cursor_cloud=conn_cloud.cursor() 
+                    
                     num_local=get_num_rows_with_value(cursor_local,table_name,'ts',ts)
                     num_cloud=get_num_rows_with_value(cursor_cloud,table_name,'ts',ts)
+                    
+                    conn_cloud.close()
+                    conn_local.close()
+                    
                     if(num_local>num_cloud):
                         ts_upload=True
                 else:
@@ -239,19 +257,25 @@ def upoload_missing_data_ts(table_name):
                     #delete all rows with this ts
                     col_name='ts'
                     print(ts)
+                    connect_local()
+                    connect_cloud()
+                    cursor_local=conn_local.cursor() 
+                    cursor_cloud=conn_cloud.cursor() 
+                    
                     delete_rows_with_value(conn_cloud,cursor_cloud,table_name,col_name,ts)
                     #upload all rows with this ts
                     rows=get_rows_with_value(cursor_local,table_name,col_name,ts) 
+                    
+                    conn_cloud.close()
+                    conn_local.close()
+                    
                     for i,row in enumerate(rows):
-                        res=insert_row_to_cloud(cursor_local,cursor_cloud,table_name,row)
+                        res=insert_row_to_cloud(table_name,row)
                         if(res==-1):
                             print('did not upload...')
-                        conn_cloud.commit()
                         if(i%100==0):
                             print(str(i) + " out of  " + str(len(rows)) + " is done")
                
-            cursor_local.close()
-            cursor_cloud.close()
             print('finished uploading data.')
         except Exception as e:
             print(e)
@@ -291,9 +315,6 @@ def upload_unuploaded_raws(table_name):
     cursor_local.close()
     cursor_cloud.close()
     
-table_name='ema_data'
-table_name='reward_data'
-
 
 
 

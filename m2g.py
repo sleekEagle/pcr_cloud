@@ -76,6 +76,7 @@ def get_last_entry():
     try:
         connect_cloud()
         cursor=conn_cloud.cursor() 
+        sqlquery="SELECT * FROM M2G"
         sqlquery="SELECT * FROM M2G WHERE M2G.dep_id=\"" + str(dep_id) +  "\" AND (M2G.ts IS NOT NULL) ORDER BY -p_key LIMIT 1"
         cursor.execute(sqlquery)
         row=cursor.fetchall()  
@@ -83,7 +84,7 @@ def get_last_entry():
         print(e)
     finally:
         conn_cloud.commit()
-        cursor.close()
+        conn_cloud.close()
         return row
 
 #line='2019-10-19 17:51:13.808000,laptop,discMemeory,True,[\'M2FED.Monitor@gmail.com\'],[DiscCheckThread] popo is OK.'
@@ -109,7 +110,7 @@ def insert_raw(line):
         print(e)
     finally:
         conn_cloud.commit()
-        cursor.close()
+        conn_cloud.close()
         return res
         
 #get log file name form db_date

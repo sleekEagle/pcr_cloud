@@ -7,6 +7,7 @@ Created on Thu Jan 16 13:51:49 2020
 import sqlite3
 import pymysql
 import set_env
+from datetime import datetime
 
 '''************************************
 *************************************
@@ -96,7 +97,7 @@ def upload_dep_data_table():
     
  
 def get_dep_id(project_dir):
-    dep_id=-1
+    dep_id=str(datetime.now())
     try:
         con = sqlite3.connect(project_dir+"/"+'/DeploymentInformation.db')
         cursorObj = con.cursor()
