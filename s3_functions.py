@@ -7,6 +7,7 @@ Created on Thu Oct 24 12:06:23 2019
 """
 import boto3
 import set_env
+import os
 
 
 #initialize bucket and return it
@@ -41,12 +42,39 @@ def get_item_num():
         print(e)
         return -1
     return l
+
+import sys
+import threading
+
+class ProgressPercentage(object):
+
+    def __init__(self, filename):
+        self._filename = filename
+        self._size = float(os.path.getsize(filename))
+        self._seen_so_far = 0
+        self._lock = threading.Lock()
+
+    def __call__(self, bytes_amount):
+        # To simplify, assume this is hooked up to a single filename
+        with self._lock:
+            self._seen_so_far += bytes_amount
+            percentage = (self._seen_so_far / self._size) * 100
+            sys.stdout.write(
+                "\r%s  %s / %s  (%.2f%%)" % (
+                    self._filename, self._seen_so_far, self._size,
+                    percentage))
+            sys.stdout.flush() 
+            
 #put object into bucket
-def upload_file(file_name,dir_name):
+def upload_file(file_name,dir_name,is_progress=False):
     name=file_name.split('/')[-1]
     try:
         dep_id=set_env.get_env('dep_id')
-        res=pcr_storage.upload_file(Filename=file_name,Key=dep_id+'/'+dir_name+'/'+name)
+        if(is_progress):
+            res=pcr_storage.upload_file(Filename=file_name,Key=dep_id+'/'+dir_name+'/'+name,Callback=ProgressPercentage(file_name))
+        else:
+            res=pcr_storage.upload_file(Filename=file_name,Key=dep_id+'/'+dir_name+'/'+name)
+
     except Exception as e:
         print(str(e))
         

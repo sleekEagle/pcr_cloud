@@ -8,6 +8,9 @@ import sqlite3
 import pymysql
 import set_env
 from datetime import datetime
+import os
+import s3_functions as s3
+from zipfile import ZipFile 
 
 '''************************************
 *************************************
@@ -109,7 +112,41 @@ def get_dep_id(project_dir):
         dep_id=int(last_dep_row[0])
     except Exception as e:
         print(e)
+        print("Could not read deployment ID from DeploymentInformation.db")
     return dep_id
+
+def get_all_file_paths(directory): 
+    # initializing empty file paths list 
+    file_paths = [] 
+    # crawling through directory and subdirectories 
+    for root, directories, files in os.walk(directory): 
+        for filename in files: 
+            # join the two strings in order to form the full filepath. 
+            filepath = os.path.join(root, filename) 
+            file_paths.append(filepath)
+    # returning all file paths 
+    return file_paths    
+
+def upload_zip_file():
+    set_env.read_param()
+    project_dir=set_env.get_project_dir(level_up=-4)
+    parent_dir=set_env.get_project_dir(level_up=-5)
+    out_file=parent_dir+project_dir.split('/')[-2]+".zip"
+    print("creating .zip file....")
+    
+    file_paths = get_all_file_paths(project_dir) 
+    # writing files to a zipfile 
+    with ZipFile(out_file,'w',allowZip64 = True) as zip: 
+        # writing each file one by one 
+        for file in file_paths: 
+            zip.write(file)
+    
+    #shutil.make_archive(out_file, 'zip', project_dir,verbose=True)
+    print("done")
+    s3.get_bucket()
+    print("uploading .zip file to cloud")
+    s3.upload_file(out_file,"project_dir",is_progress=True)
+    print("done")
 
 
 
