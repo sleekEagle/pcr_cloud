@@ -12,6 +12,7 @@ from os import walk
 from os import listdir
 from os.path import isfile, join
 import set_env
+import Log
 
 
 
@@ -60,22 +61,21 @@ def list_diff(local_files, cloud_files):
 
 
 def upload_file_not_in_cloud():
-    s3.get_bucket()
-    local_files=get_local_files()
-    cloud_files=get_s3_files()
-    not_uploaded=list_diff(local_files,cloud_files)
-    for file in not_uploaded:
-        print(file)
-        dir_name=file.split('/')[-2]
-        s3.upload_file(file,dir_name)
+    b=s3.pcr_storage
+    if (b.name=='pcr-storage'):
+        Log.log_s3('bucket resource found')
+        local_files=get_local_files()
+        cloud_files=get_s3_files()
+        not_uploaded=list_diff(local_files,cloud_files)
+        for file in not_uploaded:
+            dir_name=file.split('/')[-2]
+            file_name=file.split('/')[-1]
+            print('Uploading '+file_name)
+            s3.upload_file(file,dir_name)
+    else:
+        Log.log_s3('bucket resource not found')
+
     
-
-
-
-
-
-
-
 
 
 
