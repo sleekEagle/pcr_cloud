@@ -12,6 +12,7 @@ import s3_upload
 import m2g
 import ema_db
 import dep_data
+import Log
 
 
 class RepeatedTimer(object):

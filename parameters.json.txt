@@ -12,7 +12,7 @@
 		"rds_user":"admin",
 		"rds_password":"poloBolo1234",
 		"m2g_upload_time_s":"10",
-		"m2g_log_dir":"/home/sleek_eagle/research/PCR_cloud/data/m2g_logs",
+		"m2g_log_dir":"/m2g/m2glog",
 		"m2g_fields" : "ts,sub_system,component,status,receiver,content,dep_id"
 		},
 		"param" : {
