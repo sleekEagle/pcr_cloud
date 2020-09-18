@@ -12,6 +12,7 @@ from os import listdir
 from os.path import isfile, join
 import pymysql
 import re
+import dep_data
 
 '''************************************
 *************************************
@@ -70,7 +71,7 @@ def get_sorted_file_names():
     return file_names
 
 
-#get the last enrey of the table which came from this deployment
+#get the last enrey of the table (in cloud) which came from this deployment
 def get_last_entry():   
     #query
     try:
@@ -127,6 +128,9 @@ def upload_missing_entries():
     last_db_raw=get_last_entry()
     last_db_ts="-1"
     file_name=file_names[0]
+    start_date=dep_data.get_start_date()
+    #select file names which were created after the start date of deployment
+    file_names=[f for f in file_names if f[0:10]>start_date]
     if(len(last_db_raw) > 0):
         last_db_ts=last_db_raw[0][2]
         file_name=get_file_name_fromdb_date(last_db_ts)
@@ -141,6 +145,7 @@ def upload_missing_entries():
             if(ts > last_db_ts):
                 res=insert_raw(line)
                 print(res)
+                
 
 
 
