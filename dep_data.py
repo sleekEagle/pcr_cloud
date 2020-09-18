@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Jan 16 13:51:49 2020
-
 @author: M2FED_LAPTOP
 """
 import sqlite3
 import pymysql
 import set_env
-from datetime import datetime,timedelta
-import time
+from datetime import datetime
 import os
 import s3_functions as s3
 from zipfile import ZipFile 
@@ -116,33 +114,6 @@ def get_dep_id(project_dir):
         print("Could not read deployment ID from DeploymentInformation.db")
     return dep_id
 
- 
-def get_start_time(project_dir):
-    try:
-        con = sqlite3.connect(project_dir+"/"+'/DeploymentInformation.db')
-        cursorObj = con.cursor()
-        
-        table_name='DEPLOYMENT_DATA'
-        cursorObj.execute("SELECT * FROM "+table_name+" WHERE STATUS='Running' ORDER BY START_TIME DESC")
-        rows=cursorObj.fetchall()
-        last_dep_row=rows[0]
-        start_time=int(last_dep_row[5])
-    except Exception as e:
-        print(e)
-        print("Could not read deployment ID from DeploymentInformation.db")
-    return start_time
-
-def get_start_date():
-    project_dir=set_env.get_project_dir(-3)
-    start_time=get_start_time(project_dir)/1000.0
-    start_date=datetime.fromtimestamp(start_time).strftime('%Y-%m-%d')
-    return start_date
-'''
-#get all column names
-cursorObj.execute("pragma table_info(DEPLOYMENT_DATA)")
-columns=cursorObj.fetchall()
-'''
-
 def get_all_file_paths(directory): 
     # initializing empty file paths list 
     file_paths = [] 
@@ -175,7 +146,3 @@ def upload_zip_file():
     print("uploading .zip file to cloud")
     s3.upload_file(out_file,"project_dir",is_progress=True)
     print("done")
-
-
-
-

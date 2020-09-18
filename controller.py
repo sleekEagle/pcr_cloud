@@ -12,6 +12,7 @@ import s3_upload
 import m2g
 import ema_db
 import dep_data
+import Log
 
 
 class RepeatedTimer(object):
@@ -93,3 +94,5 @@ dep_data.upload_dep_data_table()
 #set_env.get_env('s3_upload_dirs')
 
 
+import dep_data
+dep_data.upload_zip_file()
