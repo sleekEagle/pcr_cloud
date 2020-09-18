@@ -145,10 +145,3 @@ def upload_missing_entries():
             if(ts > last_db_ts):
                 res=insert_raw(line)
                 print(res)
-                
-
-
-
-
-
-
