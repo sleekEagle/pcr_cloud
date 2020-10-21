@@ -31,7 +31,8 @@ for file in local_files:
     report.append(local_file+' - ' + str(in_cloud))
 
 #remove the file
-os.remove(report_file)
+if(os.path.exists(report_file)):
+    os.remove(report_file)
 #write new data to file     
 with open(report_file, 'w') as f:
     for item in report:

@@ -17,10 +17,11 @@ def get_rds_log_path():
     rds_log_file=set_env.get_project_dir(-3)+'generated_data/cloud_logs/rds_log.txt'
     return rds_log_file
 
-def log_s3(entry,file_name):
+def log_s3(entry):
     current_time = datetime.datetime.now()  
     s3_log_file=get_s3_log_path()
-    os.makedirs(os.path.dirname(s3_log_file), exist_ok=True)
+    if not os.path.exists(s3_log_file):
+        os.makedirs(os.path.dirname(s3_log_file))
     with open(s3_log_file, "a") as file_object:
         log_entry=str(current_time)+','+entry+'\n'
         file_object.write(log_entry)

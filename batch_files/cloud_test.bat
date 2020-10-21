@@ -1,3 +1,3 @@
-REM call activate pcr_cloud_lahiru
+call activate pcr_env
 python "..\test_cloud_connection.py"
 REM PAUSE
