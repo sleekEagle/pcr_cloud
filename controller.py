@@ -94,5 +94,5 @@ dep_data.upload_dep_data_table()
 #set_env.get_env('s3_upload_dirs')
 
 
-import dep_data
-dep_data.upload_zip_file()
+#import dep_data
+#dep_data.upload_zip_file()

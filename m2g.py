@@ -138,10 +138,10 @@ def upload_missing_entries():
         if(f<file_name):
             continue
         lines=read_file(f)
-        print(lines[0])
+        #print(lines[0])
         for line in lines:
             ts=get_ts(line)
-            print(ts)
+            #print(ts)
             if(ts > last_db_ts):
                 res=insert_raw(line)
-                print(res)
+                #print(res)

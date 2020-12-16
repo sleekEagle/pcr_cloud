@@ -77,12 +77,6 @@ def upload_file_not_in_cloud():
     else:
         Log.log_s3('bucket resource not found')
 
-    
-
-
-
-
-
 
 
 

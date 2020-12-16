@@ -9,6 +9,7 @@ import boto3
 import set_env
 import os
 import Log
+import hashlib
 
 
 #initialize bucket and return it
@@ -22,6 +23,8 @@ def get_bucket():
     )
     global pcr_storage
     pcr_storage=s3.Bucket('pcr-storage')
+    
+
     
 #list all items in the bucket
 def list_items():
@@ -69,24 +72,50 @@ class ProgressPercentage(object):
                     self._filename, self._seen_so_far, self._size,
                     percentage))
             sys.stdout.flush() 
-            
+      
+
 #put object into bucket
 def upload_file(file_name,dir_name,is_progress=False):
     name=file_name.split('/')[-1]
     try:
         dep_id=set_env.get_env('dep_id')
+        key=dep_id+'/'+dir_name+'/'+name
         if(is_progress):
-            res=pcr_storage.upload_file(Filename=file_name,Key=dep_id+'/'+dir_name+'/'+name,Callback=ProgressPercentage(file_name))
+            res=pcr_storage.upload_file(Filename=file_name,Key=key,Callback=ProgressPercentage(file_name))
         else:
-            res=pcr_storage.upload_file(Filename=file_name,Key=dep_id+'/'+dir_name+'/'+name)
+            res=pcr_storage.upload_file(Filename=file_name,Key=key)
         short_file=file_name.split('/')[-1]
         Log.log_s3('uploaded ' + dir_name+'/'+short_file)
+        #compare checksums
+        print('checking checksum....')
+        same=are_files_same(key,file_name)
+        if(not same):
+            log_entry='checksum failed after uploading '+dir_name+'/'+short_file + ' in upload_file of s3_functions exception='+str(e)
+            Log.log_s3(log_entry)
+            #delete the file in cloud
+            response = pcr_storage.delete_objects(Delete={'Objects': [{'Key': key}]})
+            return -1
+        else:
+            Log.log_s3('checksum success ' + dir_name+'/'+short_file)
+            return 0
     except Exception as e:
         print(str(e))
         short_file=file_name.split('/')[-1]
         log_entry='exception uploading '+dir_name+'/'+short_file + ' in upload_file of s3_functions exception='+str(e)
         Log.log_s3(log_entry)
-        
+        return -1
+
+#check if a local and cloud file have the same md5
+def are_files_same(cloud_file,local_file):
+    #create temp file
+    target_file=set_env.get_project_dir(-1)+'tmp.txt'
+    download_file(target_file,cloud_file)
+    cloud_md5=get_md5(target_file)
+    local_md5=get_md5(local_file)
+    return (cloud_md5==local_md5)
+
+    
+
 def download_file(target_file,cloud_file):
     try:
         pcr_storage.download_file(Key=cloud_file,Filename=target_file)
@@ -94,7 +123,14 @@ def download_file(target_file,cloud_file):
         print(str(e))
         log_entry='in download_file of s3_functions exception='+str(e)
         Log.log_s3(log_entry)
-        
+
+def get_md5(file_name):
+    with open(file_name) as f:
+        data = f.read()    
+        md5hash = hashlib.md5(data.encode('utf-8')).hexdigest()
+    return md5hash
+    
+       
 def unique(list1):
     unique_list = [] 
     # traverse for all elements 
