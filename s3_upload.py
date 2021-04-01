@@ -72,8 +72,9 @@ def upload_file_not_in_cloud():
         for file in not_uploaded:
             dir_name=file.split('/')[-2]
             file_name=file.split('/')[-1]
-            print('Uploading '+file_name)
+            #print('Uploading '+file_name)
             s3.upload_file(file,dir_name)
+            #print('uploaded')
     else:
         Log.log_s3('bucket resource not found')
 

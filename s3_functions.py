@@ -21,8 +21,9 @@ def get_bucket():
         aws_access_key_id=key_id,
         aws_secret_access_key=secret_key,
     )
-    global pcr_storage
+    global pcr_storage,client
     pcr_storage=s3.Bucket('pcr-storage')
+    client=boto3.client('s3')
     
 
     
@@ -72,7 +73,49 @@ class ProgressPercentage(object):
                     self._filename, self._seen_so_far, self._size,
                     percentage))
             sys.stdout.flush() 
-      
+            
+def md5_checksum(filename):
+    m = hashlib.md5()
+    with open(filename, 'rb') as f:
+        for data in iter(lambda: f.read(1024 * 1024), b''):
+            m.update(data)
+   
+    return m.hexdigest() 
+
+
+def etag_checksum(filename, chunk_size=8 * 1024 * 1024):
+    md5s = []
+    with open(filename, 'rb') as f:
+        for data in iter(lambda: f.read(chunk_size), b''):
+            md5s.append(hashlib.md5(data).digest())
+    m = hashlib.md5(b"".join(md5s))
+    print('{}-{}'.format(m.hexdigest(), len(md5s)))
+    return '{}-{}'.format(m.hexdigest(), len(md5s))
+
+def etag_compare(filename, etag):
+    et = etag[1:-1] # strip quotes
+    print('et',et)
+    if '-' in et and et == etag_checksum(filename):
+        return True
+    if '-' not in et and et == md5_checksum(filename):
+        return True
+    return False     
+#key='5414/generated_audios_to_upload/2021-03-09-02-14-50.wav'
+#obj=pcr_storage.Object(key=key)
+
+#client=boto3.client('s3')
+#obj=client.head_object(Bucket='pcr-storage',Key=key)
+#filename='D:/Patient-Caregiver-Relationship/Patient-Caregiver-Relationship/generated_data/generated_audios_to_upload/2021-03-09-02-14-50.wav'
+
+def is_checksum_ok(file_name,key):
+    try:
+        obj=client.head_object(Bucket='pcr-storage',Key=key)
+        etag=obj['ETag']
+        checksum_ok=etag_compare(file_name, etag)
+        return checksum_ok
+    except:
+        Log.log_s3('exception obtaining etag from cloud ' + filename)
+        return -1
 
 #put object into bucket
 def upload_file(file_name,dir_name,is_progress=False):
@@ -88,7 +131,7 @@ def upload_file(file_name,dir_name,is_progress=False):
         Log.log_s3('uploaded ' + dir_name+'/'+short_file)
         #compare checksums
         print('checking checksum....')
-        same=are_files_same(key,file_name)
+        same=is_checksum_ok(file_name,key)
         if(not same):
             log_entry='checksum failed after uploading '+dir_name+'/'+short_file + ' in upload_file of s3_functions exception='+str(e)
             Log.log_s3(log_entry)

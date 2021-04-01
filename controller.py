@@ -13,6 +13,12 @@ import m2g
 import ema_db
 import dep_data
 import Log
+import logging
+import threading
+import time
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
+
 
 
 class RepeatedTimer(object):
@@ -63,6 +69,10 @@ def m2g_upload_task():
     m2g.upload_missing_entries()
     print("done uploading m2g data.")
     
+def test_print():
+    print('pppp')
+    time.sleep(60)
+    
 #uupload missing data to ema tables
 def ema_upload_task():
     print("updating ema data table...")
@@ -78,17 +88,21 @@ def ema_upload_task():
 
 #read parameter from file
 read_params()
-read_param_thread=RepeatedTimer(60,read_params)
+#read_param_thread=RepeatedTimer(60,read_params)
 
 #schedule recurring tasks
+'''
 s3_upload_thread=RepeatedTimer(s3_upload_time_s,s3_upload_task)
 m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2g_upload_task)
 ema_upload_thread=RepeatedTimer(600,ema_upload_task)
+'''
 
 #upload just once tasks
 #upload ema_phones table ones   
+'''
 ema_db.upload_fixed_tables()
 dep_data.upload_dep_data_table()
+'''
 
 #read_param_thread.stop()
 #set_env.get_env('s3_upload_dirs')
@@ -96,3 +110,12 @@ dep_data.upload_dep_data_table()
 
 #import dep_data
 #dep_data.upload_zip_file()
+
+
+while True:
+    executors_list = []
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        executors_list.append(executor.submit(s3_upload_task()))
+        executors_list.append(executor.submit(m2g_upload_task()))
+        time.sleep(60*5)
+
