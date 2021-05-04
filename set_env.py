@@ -11,6 +11,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 import dep_data
+import csv
 
 '''
 this code reads paramenters from parameters.json 
@@ -25,6 +26,21 @@ def get_project_dir(level_up=-1):
     current_dir+='/'
     return current_dir
 
+def get_credentials():
+    try:
+        paroject_home=get_project_dir(-4)
+        credential_file=paroject_home+'credentials.txt'
+        a_csv_file = open(credential_file, "r")
+        dict_reader = csv.DictReader(a_csv_file)
+        ordered_dict_from_csv = list(dict_reader)[0]
+        dict_from_csv = dict(ordered_dict_from_csv)
+        id=dict_from_csv['Access key ID']
+        secret=dict_from_csv['Secret access key']
+    except:
+        print('Cannot read creadentials file.')
+    return id,secret
+
+
 #find the parameter.json file by searching in the parent directory
 def find_parameter_file():
     current_dir=get_project_dir()
@@ -38,6 +54,7 @@ def find_parameter_file():
 #read paramenters from file
 def read_param():
     json_file=find_parameter_file()
+    is_read_ok=True
     if(type(json_file)==str):
         try:
             with open(json_file, 'r') as f:
@@ -48,14 +65,25 @@ def read_param():
                 os.environ[key]=str(value)
         except Exception as e:
             print(e)
-            print("lalaaa")
+            print("Exception when reading parameters file")
+            is_read_ok=False
     else:
+        is_read_ok=False
         raise Exception("cannot find a parameters.json file in the parent directory...")
     #set dep_id environ variable
     dep_id=dep_data.get_dep_id(get_project_dir(-3))
     os.environ['dep_id']=str(dep_id)
     
-    
+    #read creadentials
+    try:
+        id,secret=get_credentials()
+        os.environ['aws_access_key_id']=id
+        os.environ['aws_secret_access_key']=secret
+    except:
+        is_read_ok=False
+        print('exception when reading creadentials')
+    return is_read_ok
+        
         
         
 def get_env(name):

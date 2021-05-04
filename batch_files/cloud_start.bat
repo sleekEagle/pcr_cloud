@@ -1,3 +1,3 @@
-call activate pcr_env
-python "..\controller.py" 
-PAUSE
+REM call activate pcr_env
+REM python "..\controller.py" 
+REM PAUSE

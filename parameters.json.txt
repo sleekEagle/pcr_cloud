@@ -4,8 +4,6 @@
 		"s3_file_upload_time_s" : 60,
 		"s3_upload_dirs" : "/generated_data/generated_audios_to_upload,/generated_data/generated_mood_classification,/generated_data/generated_speaker_id,/generated_data/cloud_logs",
 		"dep_id" : "1",
-		"aws_access_key_id" : "AKIAIL5GADOF5FJS6JPQ",
-		"aws_secret_access_key":"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",
 		"rds_host":"pcr-database.c6cya7u6ocd9.us-east-2.rds.amazonaws.com",
 		"rds_port":"3306",
 		"rds_db_name":"pcr_data",
