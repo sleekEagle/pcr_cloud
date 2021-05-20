@@ -5,44 +5,12 @@ Created on Thu Jan 16 13:51:49 2020
 @author: M2FED_LAPTOP
 """
 import sqlite3
-import pymysql
-import set_env
-from datetime import datetime,timedelta
-import time
 import os
 import s3_functions as s3
 from zipfile import ZipFile 
-
-'''************************************
-*************************************
-cloud database funcitons
-**************************************
-*************************************'''
-def connect_cloud():
-    set_env.read_param()
-    global dep_id,conn_cloud,host,port,dbname,user,password,dep_id,columns
-    conn_cloud=-1
-    try:
-        host=set_env.get_env('rds_host')
-        port=int(set_env.get_env('rds_port'))
-        dbname=set_env.get_env('rds_db_name')
-        user=set_env.get_env('rds_user')
-        password=set_env.get_env('rds_password')
-        dep_id=set_env.get_env('dep_id')
-    except Exception as e:
-        print(e)
-    try:
-        conn_cloud = pymysql.connect(host, user=user,port=port,passwd=password, db=dbname)
-        if(not (type(conn_cloud) == pymysql.connections.Connection)):
-            raise Exception("counld not obtain propoer connection to RDS...")
-    except Exception as e:
-        print(e)
-
-#cloud operations
-
+import file_system_tasks
+import datetime
         
-
- 
 def get_table_names(con):
     cursorObj = con.cursor()
     cursorObj.execute('SELECT name from sqlite_master where type= "table"')
@@ -54,34 +22,27 @@ def get_local_columns(con,table_name):
     columns=cursorObj.fetchall()
     return columns
 
-def get_cloud_columns(con,table_name):
-    cursor = con.cursor()
-    cursor.execute("SHOW COLUMNS from " + table_name)
-    columns=cursor.fetchall()
-    return columns   
- 
-def get_all_rows(cursor,table_name):
-    cursor.execute("SELECT * FROM "+table_name)
-    cols=cursor.fetchall() 
-    return cols
-
-def upload_dep_data_table():
-    table_name='DEPLOYMENT_DATA'
-    connect_cloud()
-    project_path=set_env.get_project_dir(-3)[:-1]
-    con = sqlite3.connect(project_path+"/"+'/DeploymentInformation.db')
-    cursor_cloud = conn_cloud.cursor()
-    
-    cursorObj = con.cursor()
-    rows=get_all_rows(cursorObj,"DEPLOYMENT_DATA")
-    local_cols=get_local_columns(con,"DEPLOYMENT_DATA")
-    local_cols=[str(col[1]) for col in local_cols]
-    
-    cloud_cols=get_cloud_columns(conn_cloud,"DEPLOYMENT_DATA")
-    cloud_cols=[col[0] for col in cloud_cols]
-    
-    cursorObj.execute('SELECT * from  DEPLOYMENT_DATA')
-    rows=cursorObj.fetchall()
+def upload_dep_data_table(rds_connection):
+    project_path=file_system_tasks.get_project_dir(-3)[:-1]
+    try:
+        local_con = sqlite3.connect(project_path+"/"+'/DeploymentInformation.db')
+    except:
+        print('cannot connect to local DB')
+        return -1
+    try:
+        rows=rds_connection.get_all_rows("DEPLOYMENT_DATA")
+        local_cols=get_local_columns(local_con,"DEPLOYMENT_DATA")
+        local_cols=[str(col[1]) for col in local_cols]
+        
+        cloud_cols=rds_connection.get_column_names("DEPLOYMENT_DATA")
+        cloud_cols=[col[0] for col in cloud_cols]
+        
+        cursorObj = local_con.cursor()
+        cursorObj.execute('SELECT * from  DEPLOYMENT_DATA')
+        rows=cursorObj.fetchall()
+    except:
+        print('Error when reading from databases. upload_dep_data_table() in dep_data.py')
+        return -1
     
     str_cols=""
     for i,col in enumerate(local_cols):
@@ -95,13 +56,13 @@ def upload_dep_data_table():
             if(local_cols[i] in cloud_cols):
                 str_row+=("\'"+str(item)+"\',")
         str_row=str_row[:-1]
-        cursor_cloud.execute("INSERT INTO "+table_name+" (" + str_cols + ") values (" + str_row + ")")
-        conn_cloud.commit()
-    cursor_cloud.close()
+        res=rds_connection.insert_row('DEPLOYMENT_DATA',str_cols,str_row)
+        if(res!=1):
+            print('error inserting row')
     
  
 def get_dep_id(project_dir):
-    dep_id=str(datetime.now())
+    dep_id=str(datetime.datetime.now())
     try:
         con = sqlite3.connect(project_dir+"/"+'/DeploymentInformation.db')
         cursorObj = con.cursor()
@@ -133,15 +94,15 @@ def get_start_time(project_dir):
     return start_time
 
 def get_start_date():
-    project_dir=set_env.get_project_dir(-3)
-    start_time=get_start_time(project_dir)/1000.0
-    start_date=datetime.fromtimestamp(start_time).strftime('%Y-%m-%d')
+    start_date=-1
+    try:
+        project_dir=file_system_tasks.get_project_dir(-3)
+        start_time=get_start_time(project_dir)/1000.0
+        start_date=datetime.datetime.fromtimestamp(start_time).strftime('%Y-%m-%d')
+    except:
+        print('exception when getting start date')
     return start_date
-'''
-#get all column names
-cursorObj.execute("pragma table_info(DEPLOYMENT_DATA)")
-columns=cursorObj.fetchall()
-'''
+
 
 def get_all_file_paths(directory): 
     # initializing empty file paths list 
@@ -156,9 +117,8 @@ def get_all_file_paths(directory):
     return file_paths    
 
 def upload_zip_file():
-    set_env.read_param()
-    project_dir=set_env.get_project_dir(level_up=-4)
-    parent_dir=set_env.get_project_dir(level_up=-5)
+    project_dir=file_system_tasks.get_project_dir(level_up=-4)
+    parent_dir=file_system_tasks.get_project_dir(level_up=-5)
     out_file=parent_dir+project_dir.split('/')[-2]+".zip"
     print("creating .zip file....")
     

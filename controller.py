@@ -7,7 +7,6 @@ Created on Wed Nov 13 10:44:47 2019
 """
 
 from threading import Timer
-import set_env
 import s3_upload
 import m2g
 import ema_db
@@ -116,6 +115,21 @@ while True:
     executors_list = []
     with ThreadPoolExecutor(max_workers=1) as executor:
         executors_list.append(executor.submit(s3_upload_task()))
-        executors_list.append(executor.submit(m2g_upload_task()))
+        #executors_list.append(executor.submit(m2g_upload_task()))
         time.sleep(60*5)
+
+import heart_beat
+import rds
+import dep_data
+
+with ThreadPoolExecutor(max_workers=1) as executor:
+        executors_list.append(executor.submit(s3_upload_task()))
+        #executors_list.append(executor.submit(m2g_upload_task()))
+        time.sleep(60*5)
+
+rds_connection=rds.RDS() 
+m2g.upload_missing_entries(rds_connection)
+
+
+    
 

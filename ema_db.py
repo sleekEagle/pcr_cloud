@@ -7,6 +7,8 @@ Created on Tue Dec  3 09:58:53 2019
 
 import pymysql
 import set_env
+import csv
+import dep_data
 
 '''************************************
 *************************************
@@ -14,24 +16,27 @@ cloud database funcitons
 **************************************
 *************************************'''
 def connect_cloud():
-    set_env.read_param()
-    global dep_id,conn_cloud,host,port,dbname,user,password,dep_id,columns
+    global dep_id,conn_cloud,endpoint,port,database_name,username,password
     conn_cloud=-1
     try:
-        host=set_env.get_env('rds_host')
-        port=int(set_env.get_env('rds_port'))
-        dbname=set_env.get_env('rds_db_name')
-        user=set_env.get_env('rds_user')
-        password=set_env.get_env('rds_password')
-        dep_id=set_env.get_env('dep_id')
+        dep_id=dep_data.get_dep_id(set_env.get_project_dir(-3))
+        param_dict=set_env.get_parameters('RDS_credentials.txt')
+        endpoint=param_dict['endpoint']
+        port=int(param_dict['port'])
+        database_name=param_dict['database_name']
+        username=param_dict['username']
+        password=param_dict['password']            
     except Exception as e:
         print(e)
+        return -1
     try:
-        conn_cloud = pymysql.connect(host, user=user,port=port,passwd=password, db=dbname)
+        conn_cloud = pymysql.connect(endpoint, user=username,port=port,passwd=password, db=database_name)
+        return 0
         if(not (type(conn_cloud) == pymysql.connections.Connection)):
-            raise Exception("counld not obtain propoer connection to RDS...")
+            raise Exception("counld not obtain proper connection to RDS...")
     except Exception as e:
         print(e)
+        return -1
 
 
 '''************************************

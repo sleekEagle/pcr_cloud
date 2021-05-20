@@ -7,14 +7,11 @@ Created on Tue Oct 29 19:44:36 2019
 """
 
 import s3_functions as s3
-import os
-from os import walk
 from os import listdir
 from os.path import isfile, join
-import set_env
+import file_system_tasks
 import Log
-
-
+import dep_data
 
 
 def get_paths(items):
@@ -28,21 +25,21 @@ def get_paths(items):
 
 def get_s3_files():
     s3.get_bucket()
-    dep_id=set_env.get_env('dep_id')
+    dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
     all_objects = s3.list_items()  
     
     dep_items=[]
     for name in all_objects:
         ar=name.split('/')
         if(len(ar) > 2 and len(ar[-1]) > 0):    
-            if(ar[0] == dep_id):
+            if(str(ar[0]) == str(dep_id)):
                 dep_items.append(ar[1:])
     cloud_files=get_paths(dep_items)
     return cloud_files
 
 def get_local_files():
-    paths=set_env.get_env('s3_upload_dirs').split(',')
-    project_dir=set_env.get_project_dir(-3)[:-1]
+    paths=file_system_tasks.get_parameters('parameters.json')['param']['s3_upload_dirs'].split(',')
+    project_dir=file_system_tasks.get_project_dir(-3)[:-1]
     paths=[project_dir+path for path in paths]
     file_list=[] 
     for path in paths:

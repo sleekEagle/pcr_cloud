@@ -8,13 +8,14 @@ This logs errors/other strings form the PCR_cloud code
 """
 import os
 import datetime 
+import file_system_tasks
 
 def get_s3_log_path():
-    s3_log_file=set_env.get_project_dir(-3)+'generated_data/cloud_logs/s3_log.txt'
+    s3_log_file=file_system_tasks.get_project_dir(-3)+'generated_data/cloud_logs/s3_log.txt'
     return s3_log_file
 
 def get_rds_log_path():
-    rds_log_file=set_env.get_project_dir(-3)+'generated_data/cloud_logs/rds_log.txt'
+    rds_log_file=file_system_tasks.get_project_dir(-3)+'generated_data/cloud_logs/rds_log.txt'
     return rds_log_file
 
 def log_s3(entry):
@@ -26,5 +27,3 @@ def log_s3(entry):
         log_entry=str(current_time)+','+entry+'\n'
         file_object.write(log_entry)
         
-
-import set_env      

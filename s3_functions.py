@@ -6,26 +6,25 @@ Created on Thu Oct 24 12:06:23 2019
 @author: sleek_eagle
 """
 import boto3
-import set_env
+import file_system_tasks
 import os
 import Log
 import hashlib
-
+import file_system_tasks
+import dep_data
 
 #initialize bucket and return it
 def get_bucket():
-    key_id=set_env.get_env('aws_access_key_id')
-    secret_key=set_env.get_env('aws_secret_access_key')
+    credentials=file_system_tasks.get_parameters('s3_credentials.txt')
+    key_id=credentials['Access key ID']
+    secret_key=credentials['Secret access key']
     s3 = boto3.resource(
         's3',
         aws_access_key_id=key_id,
         aws_secret_access_key=secret_key,
     )
-    global pcr_storage,client
+    global pcr_storage
     pcr_storage=s3.Bucket('pcr-storage')
-    client=boto3.client('s3')
-    
-
     
 #list all items in the bucket
 def list_items():
@@ -94,7 +93,7 @@ def etag_checksum(filename, chunk_size=8 * 1024 * 1024):
 
 def etag_compare(filename, etag):
     et = etag[1:-1] # strip quotes
-    print('et',et)
+    #print('et',et)
     if '-' in et and et == etag_checksum(filename):
         return True
     if '-' not in et and et == md5_checksum(filename):
@@ -109,20 +108,20 @@ def etag_compare(filename, etag):
 
 def is_checksum_ok(file_name,key):
     try:
-        obj=client.head_object(Bucket='pcr-storage',Key=key)
-        etag=obj['ETag']
+        obj = s3.Object(bucket_name='pcr-storage', key=key) 
+        etag=obj.e_tag
         checksum_ok=etag_compare(file_name, etag)
         return checksum_ok
     except:
-        Log.log_s3('exception obtaining etag from cloud ' + filename)
+        Log.log_s3('exception obtaining etag from cloud ' + file_name)
         return -1
 
 #put object into bucket
 def upload_file(file_name,dir_name,is_progress=False):
     name=file_name.split('/')[-1]
     try:
-        dep_id=set_env.get_env('dep_id')
-        key=dep_id+'/'+dir_name+'/'+name
+        dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
+        key=str(dep_id)+'/'+str(dir_name)+'/'+str(name)
         if(is_progress):
             res=pcr_storage.upload_file(Filename=file_name,Key=key,Callback=ProgressPercentage(file_name))
         else:
