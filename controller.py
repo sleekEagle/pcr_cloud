@@ -78,7 +78,7 @@ def ema_upload_task():
     ema_db.upoload_missing_data_ts('ema_data')
     print("done updating ema data table.")
     print("updating reward data...")
-    ema_db.upload_unuploaded_raws('reward_data')
+    ema_db.upload_unuploaded_rows('reward_data')
     print("done updating reward data table.")
     print("updating storing data...")
     ema_db.upload_unuploaded_raws('ema_storing_data')
@@ -121,6 +121,7 @@ while True:
 import heart_beat
 import rds
 import dep_data
+import ema_db
 
 with ThreadPoolExecutor(max_workers=1) as executor:
         executors_list.append(executor.submit(s3_upload_task()))
@@ -128,6 +129,8 @@ with ThreadPoolExecutor(max_workers=1) as executor:
         time.sleep(60*5)
 
 rds_connection=rds.RDS() 
+local_connection=rds.Local()
+ema_db.upload_unuploaded_rows(rds_connection,local_connection,'reward_data')
 m2g.upload_missing_entries(rds_connection)
 
 
