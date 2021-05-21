@@ -50,7 +50,7 @@ class RDS:
             
     def insert_row(self,table_name,col_names,values):
         with self.conn.cursor() as cursor:
-            res=cursor.execute("INSERT INTO "+table_name+" (" + col_names + ") values (" + values + ")")
+            res=cursor.execute("INSERT INTO "+table_name+" (" + col_names + ") values (" + str(values) + ")")
             self.conn.commit()
             return res
    
@@ -86,14 +86,21 @@ class RDS:
     #count the number of rows where column col_name = value
     def get_num_rows_with_value(self,table_name,col_name,value,dep_id):
         with self.conn.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE "+col_name +"=\""+value+"\" AND dep_id=\""+str(dep_id)+"\"")
+            cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE "+col_name +"=\""+str(value)+"\" AND dep_id=\""+str(dep_id)+"\"")
+            count=cursor.fetchall()[0][0]
+            return count
+        
+    #count all rows
+    def get_num_rows(self,table_name,dep_id):
+        with self.conn.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE dep_id=\""+str(dep_id)+"\"")
             count=cursor.fetchall()[0][0]
             return count
         
     #get the rows where col_name=value
     def get_rows_with_value(self,table_name,col_name,value,dep_id):
         with self.conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM "+table_name+" WHERE "+col_name +"=\""+value+"\" AND dep_id=\""+str(dep_id)+"\"")
+            cursor.execute("SELECT * FROM "+table_name+" WHERE "+col_name +"=\""+str(value)+"\" AND dep_id=\""+str(dep_id)+"\"")
             rows=cursor.fetchall()
             return rows
         
@@ -106,7 +113,7 @@ class RDS:
     #updatea column of a row with a given value. Identify column via primary key
     def set_column(self,table_name,primary_key_name,primary_key,col_name,value):
         with self.conn.cursor() as cursor:
-            res=cursor.execute("UPDATE " + table_name +" SET "+str(col_name)+"="+str(value)+" WHERE "+primary_key_name+"=\""+primary_key+"\"")
+            res=cursor.execute("UPDATE " + table_name +" SET "+str(col_name)+"="+str(value)+" WHERE "+primary_key_name+"=\""+str(primary_key)+"\"")
             self.conn.commit()
             return res
         
@@ -123,7 +130,7 @@ class Local(RDS):
             
     def get_num_rows_with_value(self,table_name,col_name,value):
         with self.conn.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE "+col_name +"=\""+value+"\"")
+            cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE "+col_name +"=\""+str(value)+"\"")
             count=cursor.fetchall()[0][0]
             return count
         
@@ -138,9 +145,15 @@ class Local(RDS):
     def get_rows_with_value(self,required_col,table_name,col_name,value):
         with self.conn.cursor() as cursor:
             if(required_col==-1):
-                cursor.execute("SELECT * FROM "+table_name+" WHERE "+col_name +"=\""+value+"\"")
+                cursor.execute("SELECT * FROM "+table_name+" WHERE "+col_name +"=\""+str(value)+"\"")
             else:
-                cursor.execute("SELECT "+str(required_col)+" FROM "+table_name+" WHERE "+col_name +"=\""+value+"\"")
+                cursor.execute("SELECT "+str(required_col)+" FROM "+table_name+" WHERE "+str(col_name) +"=\""+str(value)+"\"")
             rows=cursor.fetchall()
             return rows
+     #count all rows
+    def get_num_rows(self,table_name):
+        with self.conn.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM "+table_name)
+            count=cursor.fetchall()[0][0]
+            return count
            

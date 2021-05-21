@@ -17,6 +17,7 @@ Call this code once you change aby parameters from parameters.json
 '''
 
 def get_project_dir(level_up=-1):
+    current_dir=-1
     try:
         path=home.__file__
         l=path.split('\\')

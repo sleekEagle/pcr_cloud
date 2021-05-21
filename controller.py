@@ -81,7 +81,7 @@ def ema_upload_task():
     ema_db.upload_unuploaded_rows('reward_data')
     print("done updating reward data table.")
     print("updating storing data...")
-    ema_db.upload_unuploaded_raws('ema_storing_data')
+    ema_db.upload_unuploaded_rows('ema_storing_data')
     print("done updating storing data table.")
  
 
@@ -100,7 +100,7 @@ ema_upload_thread=RepeatedTimer(600,ema_upload_task)
 #upload ema_phones table ones   
 '''
 ema_db.upload_fixed_tables()
-dep_data.upload_dep_data_table()
+dep_data.upload_dep_data_table(rds_connection)
 '''
 
 #read_param_thread.stop()
@@ -122,6 +122,8 @@ import heart_beat
 import rds
 import dep_data
 import ema_db
+import test_cloud_files
+import missing_data
 
 with ThreadPoolExecutor(max_workers=1) as executor:
         executors_list.append(executor.submit(s3_upload_task()))
@@ -130,9 +132,22 @@ with ThreadPoolExecutor(max_workers=1) as executor:
 
 rds_connection=rds.RDS() 
 local_connection=rds.Local()
+
+missing_data.insert_missing_M2G()
+table_name='ema_storing_data'
+table_name='ema_data'
+missing_table_name='missing_ema_storing_data'
+missing_table_name='missing_ema_data'
+missing_data.insert_missing_data(rds_connection,local_connection,table_name,missing_table_name)
+
+ema_db.upoload_missing_data_ts(rds_connection,local_connection,'ema_data')
 ema_db.upload_unuploaded_rows(rds_connection,local_connection,'reward_data')
+ema_db.upload_unuploaded_rows(rds_connection,local_connection,'ema_storing_data')
+
 m2g.upload_missing_entries(rds_connection)
 
+local_connection.get_column_names('ema_storing_data')
 
+test_cloud_files.insert_missing_files_row(rds_connection)
     
 
