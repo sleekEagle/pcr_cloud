@@ -5,9 +5,7 @@ Created on Tue Dec  3 09:58:53 2019
 @author: M2FED_LAPTOP
 """
 
-import pymysql
 import file_system_tasks
-import csv
 import dep_data
 
 
@@ -112,6 +110,8 @@ def upload_all_rows(local_connection,rds_connection,table_name):
         
     except Exception as e:
         print(e)
+        return -1
+    return 0
     
     
 
@@ -151,19 +151,23 @@ functionalities
 *************************************'''
 
 #upload ema_phones and ema_recommendation. This is a one time job for each deployment
-def upload_fixed_tables():
-    upload_all_rows('ema_phones')
+def upload_fixed_tables(local_connection,rds_connection):
+    res=upload_all_rows(local_connection,rds_connection,'ema_phones')
+    return res
 
 #upload all missing data for ema_data table
 def upoload_missing_data_ts(rds_connection,local_connection,table_name):
     dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
     try:
-        print('uploading data....')
+        print('uploading data. '+table_name)
         
         cloud_unique_ts_list=rds_connection.get_unique_row_list(table_name,'ts',dep_id)
         local_uniqie_ts_list=local_connection.get_unique_row_list(table_name,'ts')
-                
-        for ts in local_uniqie_ts_list:
+        cloud_unique_ts_list.sort()
+        final_cloud_ts=cloud_unique_ts_list[-2]
+        selected_local_unique_ts_list=[ts for ts in local_uniqie_ts_list if (ts>final_cloud_ts)]
+        for ts in selected_local_unique_ts_list:
+            print(ts)
             ts_upload=False
             if(ts in cloud_unique_ts_list):
                 
@@ -177,8 +181,8 @@ def upoload_missing_data_ts(rds_connection,local_connection,table_name):
             if(ts_upload):
                 #delete_rows_with_value(conn_cloud,cursor_cloud,table_name,col_name,ts)
                 #upload all rows with this ts
-                rows=local_connection.get_rows_with_value(table_name,'ts',ts) 
-
+                rows=local_connection.get_rows_with_value(-1,table_name,'ts',ts) 
+                print('uploading '+str(len(rows))+' rows')
                 for i,row in enumerate(rows):
                     res=insert_row_to_cloud(local_connection,rds_connection,table_name,row,dep_id)
                     if(res==-1):

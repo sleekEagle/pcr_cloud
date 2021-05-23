@@ -6,17 +6,21 @@ Created on Thu Nov 21 07:46:00 2019
 @author: sleek_eagle
 """
 
-import boto3
-import set_env
 import s3_functions
-import m2g
+import rds
+
+try:
+    rds_connection=rds.RDS() 
+    local_connection=rds.Local()
+    s3_functions.get_bucket()
+    
+    if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
+        print('connection to databases and s3 success')
+    else:
+        print('connection to databses and s3 unsuccessfull')
+except:
+    print('exception when connecting to databases and s3')
 
 
-set_env.read_param()
-s3_functions.get_bucket()
-num=s3_functions.get_item_num()
-print("S3 connection success...")
-m2g.connect_cloud()
-print('pcr_data databse (RDS) connection success...')
 
 

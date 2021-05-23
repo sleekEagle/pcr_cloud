@@ -17,137 +17,77 @@ import threading
 import time
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
-
-
-
-class RepeatedTimer(object):
-    def __init__(self, interval, function, *args, **kwargs):
-        self._timer     = None
-        self.interval   = interval
-        self.function   = function
-        self.args       = args
-        self.kwargs     = kwargs
-        self.is_running = False
-        self.start()
-
-    def _run(self):
-        self.is_running = False
-        self.start()
-        self.function(*self.args, **self.kwargs)
-
-    def start(self):
-        if not self.is_running:
-            self._timer = Timer(self.interval, self._run)
-            self._timer.start()
-            self.is_running = True
-
-    def stop(self):
-        self._timer.cancel()
-        self.is_running = False
-
-
-def s3_upload_task():
-  print('uploading missing data to S3...')
-  s3_upload.upload_file_not_in_cloud()
-  print('done uploading missing data to S3')
- 
-#read parameters periodically from parameters.json
-def read_params():
-    print('reading parameters form parameters.json...')
-    #read parameters to environment variables from the parameters.json file
-    set_env.read_param()
-    global s3_upload_time_s,m2g_upload_time_s
-    #the frequency which we upload data to s3
-    s3_upload_time_s=int(set_env.get_env('s3_file_upload_time_s'))
-    m2g_upload_time_s=int(set_env.get_env('m2g_upload_time_s'))
-    print('parameters read from parameters.json.')
-    
-#upload missing data to m2g database
-def m2g_upload_task():
-    print("uploading m2g data...")
-    m2g.upload_missing_entries()
-    print("done uploading m2g data.")
-    
-def test_print():
-    print('pppp')
-    time.sleep(60)
-    
-#uupload missing data to ema tables
-def ema_upload_task():
-    print("updating ema data table...")
-    ema_db.upoload_missing_data_ts('ema_data')
-    print("done updating ema data table.")
-    print("updating reward data...")
-    ema_db.upload_unuploaded_rows('reward_data')
-    print("done updating reward data table.")
-    print("updating storing data...")
-    ema_db.upload_unuploaded_rows('ema_storing_data')
-    print("done updating storing data table.")
- 
-
-#read parameter from file
-read_params()
-#read_param_thread=RepeatedTimer(60,read_params)
-
-#schedule recurring tasks
-'''
-s3_upload_thread=RepeatedTimer(s3_upload_time_s,s3_upload_task)
-m2g_upload_thread=RepeatedTimer(m2g_upload_time_s,m2g_upload_task)
-ema_upload_thread=RepeatedTimer(600,ema_upload_task)
-'''
-
-#upload just once tasks
-#upload ema_phones table ones   
-'''
-ema_db.upload_fixed_tables()
-dep_data.upload_dep_data_table(rds_connection)
-'''
-
-#read_param_thread.stop()
-#set_env.get_env('s3_upload_dirs')
-
-
-#import dep_data
-#dep_data.upload_zip_file()
-
-
-while True:
-    executors_list = []
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        executors_list.append(executor.submit(s3_upload_task()))
-        #executors_list.append(executor.submit(m2g_upload_task()))
-        time.sleep(60*5)
-
-import heart_beat
 import rds
-import dep_data
-import ema_db
-import test_cloud_files
 import missing_data
+import heart_beat
+import threading
 
-with ThreadPoolExecutor(max_workers=1) as executor:
-        executors_list.append(executor.submit(s3_upload_task()))
-        #executors_list.append(executor.submit(m2g_upload_task()))
-        time.sleep(60*5)
+#connect to local and cloud(RDS) databases
+try:
+    rds_connection=rds.RDS() 
+    local_connection=rds.Local()
+    
+    if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
+        #do these tasks just at the start of the deployment
+        ema_db.upload_fixed_tables(local_connection,rds_connection)
+        dep_data.upload_dep_data_table(rds_connection)
+except:
+    print('cannot upload fixed data. Exception occured')
 
-rds_connection=rds.RDS() 
-local_connection=rds.Local()
+#how frequent we upload data (in seconds)
+freq=10*60
+def upload_data():
+    print('in upload_data()')
+    while(True):
+        print('uploading data...')
+        sleep_time=freq
+        try:
+            rds_connection=rds.RDS() 
+            local_connection=rds.Local()
+            if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
+                ts_start=time.time()
+                #upload files to s3
+                s3_upload.upload_file_not_in_cloud()
+                #upload M2G entries to RDS
+                m2g.upload_missing_entries(rds_connection)
+                #upload EMA tables to RDS
+                ema_db.upoload_missing_data_ts(rds_connection,local_connection,'ema_data')
+                ema_db.upload_unuploaded_rows(rds_connection,local_connection,'reward_data')
+                ema_db.upload_unuploaded_rows(rds_connection,local_connection,'ema_storing_data')
+            
+                #upload stats about data missing from the cloud
+                print('uploading missing data...')
+                missing_data.insert_missing_files_row(rds_connection)  
+                missing_data.insert_missing_M2G(rds_connection)
+                missing_data.insert_missing_data(rds_connection,local_connection,'ema_data','missing_ema_data')
+                missing_data.insert_missing_data(rds_connection,local_connection,'ema_storing_data','missing_ema_storing_data')
+            
+                ts_end=time.time()
+                #elapsed time in minutes
+                elapsed=(ts_end-ts_start)
+                sleep_time=freq-elapsed
+        except:
+            print('Exception in controller')
+        if(sleep_time>60):
+            time.sleep(int(sleep_time))
+            
+#frequency to enter heart beat in seconds            
+heart_beat_freq=60*1
+def manage_heart_beat():
+    while(True):
+        print('hb')
+        try:
+            rds_connection=rds.RDS()
+            if(isinstance(rds_connection,rds.RDS)):
+                res=heart_beat.insert_heart_beat(rds_connection)
+        except:
+            print('Exception in manage_heart_beat() ')
+        time.sleep(heart_beat_freq)
 
-missing_data.insert_missing_M2G()
-table_name='ema_storing_data'
-table_name='ema_data'
-missing_table_name='missing_ema_storing_data'
-missing_table_name='missing_ema_data'
-missing_data.insert_missing_data(rds_connection,local_connection,table_name,missing_table_name)
 
-ema_db.upoload_missing_data_ts(rds_connection,local_connection,'ema_data')
-ema_db.upload_unuploaded_rows(rds_connection,local_connection,'reward_data')
-ema_db.upload_unuploaded_rows(rds_connection,local_connection,'ema_storing_data')
+threading.Thread(target=manage_heart_beat).start()
+threading.Thread(target=upload_data).start()
 
-m2g.upload_missing_entries(rds_connection)
 
-local_connection.get_column_names('ema_storing_data')
-
-test_cloud_files.insert_missing_files_row(rds_connection)
     
 

@@ -32,7 +32,7 @@ def insert_missing_data(rds_connection,local_connection,table_name,missing_table
         print('Exception in insert_missing_data')
     return res
 
-def insert_missing_M2G():
+def insert_missing_M2G(rds_connection):
     res=-1
     try:
         file_names=m2g.get_sorted_file_names()

@@ -74,6 +74,7 @@ def upload_missing_entries(rds_connection):
             start_date=dep_data.get_start_date()
             #select file names which were created after the start date of deployment
             file_names=[f for f in file_names if f[0:10]>start_date]
+            file_name=file_names[0]
             if(len(last_db_raw) > 0):
                 last_db_ts=last_db_raw[0][1]
                 file_name=get_file_name_fromdb_date(str(last_db_ts))
@@ -84,7 +85,7 @@ def upload_missing_entries(rds_connection):
                 if(isinstance(lines,list)):
                     for line in lines:
                         ts=get_ts(line)
-                        if(ts > last_db_ts):
+                        if(ts > str(last_db_ts)):
                             try:
                                 res=insert_row(rds_connection,col_names,dep_id,line)
                             except:
