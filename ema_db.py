@@ -157,12 +157,15 @@ def upload_fixed_tables(local_connection,rds_connection):
 
 #upload all missing data for ema_data table
 def upoload_missing_data_ts(rds_connection,local_connection,table_name):
-    dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
     try:
+        dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
+        start_date=dep_data.get_start_date()
+
         print('uploading data. '+table_name)
         
         cloud_unique_ts_list=rds_connection.get_unique_row_list(table_name,'ts',dep_id)
         local_uniqie_ts_list=local_connection.get_unique_row_list(table_name,'ts')
+        local_uniqie_ts_list=[ts for ts in local_uniqie_ts_list if str(ts)[0:15]>start_date]    
         cloud_unique_ts_list.sort()
         if(len(cloud_unique_ts_list)>2):
             final_cloud_ts=cloud_unique_ts_list[-2]

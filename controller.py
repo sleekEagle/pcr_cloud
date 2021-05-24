@@ -61,6 +61,7 @@ def upload_data():
                 missing_data.insert_missing_M2G(rds_connection)
                 missing_data.insert_missing_data(rds_connection,local_connection,'ema_data','missing_ema_data')
                 missing_data.insert_missing_data(rds_connection,local_connection,'ema_storing_data','missing_ema_storing_data')
+                missing_data.insert_missing_data(rds_connection,local_connection,'reward_data','missing_reward_data')
             
                 ts_end=time.time()
                 #elapsed time in minutes
