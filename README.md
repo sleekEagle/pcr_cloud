@@ -12,7 +12,7 @@ Before this delete all existing tables.
 5. edit inbout rules
 6. add rule with the new laptop's IP address
 
-## Things to do when creating a new deployment
+## Things to do when creating a new deployment to get access to s3
 1. goto AWS console
 2. goto IAM
 3. goto users
@@ -20,5 +20,6 @@ Before this delete all existing tables.
 5. access type = programatic access
 6. add user to group 'deployments'
 7. create user
-8. add these credentials to the RDS_credentials.txt file in project home directory
-9. 
+8. add these credentials to the s3_credentials.txt file in project home directory
+
+
