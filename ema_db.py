@@ -164,8 +164,11 @@ def upoload_missing_data_ts(rds_connection,local_connection,table_name):
         cloud_unique_ts_list=rds_connection.get_unique_row_list(table_name,'ts',dep_id)
         local_uniqie_ts_list=local_connection.get_unique_row_list(table_name,'ts')
         cloud_unique_ts_list.sort()
-        final_cloud_ts=cloud_unique_ts_list[-2]
-        selected_local_unique_ts_list=[ts for ts in local_uniqie_ts_list if (ts>final_cloud_ts)]
+        if(len(cloud_unique_ts_list)>2):
+            final_cloud_ts=cloud_unique_ts_list[-2]
+            selected_local_unique_ts_list=[ts for ts in local_uniqie_ts_list if (ts>final_cloud_ts)]
+        else:
+            selected_local_unique_ts_list=local_uniqie_ts_list
         for ts in selected_local_unique_ts_list:
             print(ts)
             ts_upload=False

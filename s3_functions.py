@@ -129,7 +129,7 @@ def upload_file(file_name,dir_name,is_progress=False):
         short_file=file_name.split('/')[-1]
         Log.log_s3('uploaded ' + dir_name+'/'+short_file)
         #compare checksums
-        print('checking checksum....')
+        #print('checking checksum....')
         same=is_checksum_ok(file_name,key)
         if(not same):
             log_entry='checksum failed after uploading '+dir_name+'/'+short_file + ' in upload_file of s3_functions exception='+str(e)
