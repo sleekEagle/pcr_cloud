@@ -23,7 +23,7 @@ Before this delete all existing tables.
 8. add these credentials to the s3_credentials.txt file in project home directory
 
 
-##Connecting to RDS using this code
+## Connecting to RDS using this code
 You must have the RDS_credentials.txt file which contains the username, password, port and hostname of RDS instance runing on AWS. You can obtain this 
 by loggin into aws console as root and navigating to the RDS instance. \
 1. place RDS_credentials.txt file in current directory\
