@@ -69,9 +69,6 @@ def upload_file_not_in_cloud():
         for file in not_uploaded:
             dir_name=file.split('/')[-2]
             file_name=file.split('/')[-1]
-            #do not upload old data
-            if(file_name[0:10]<dep_data.get_start_date()):
-                continue
             #print('Uploading '+file_name)
             s3.upload_file(file,dir_name)
             #print('uploaded')
