@@ -27,7 +27,7 @@ Before this delete all existing tables.
 1. place RDS_credentials.txt file in current directory
 +-- RDS_credentials.txt\
 +-- dir1\
-|>   +--dir2\
+|&nbsp;   +--dir2\
     |   +--dir3 (clone this git repo here)\
         |  +--pcr_cloud\
            |  +--rds.py\
