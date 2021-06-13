@@ -25,13 +25,13 @@ Before this delete all existing tables.
 
 ##Connecting to RDS using this code
 1. place RDS_credentials.txt file in current directory
-+-- RDS_credentials.txt
-+-- dir1
-|   +--dir2
-    |   +--dir3 (clone this git repo here)
-        |  +--pcr_cloud
-           |  +--rds.py
-              +--other files
++-- RDS_credentials.txt\
++-- dir1\
+|   +--dir2\
+    |   +--dir3 (clone this git repo here)\
+        |  +--pcr_cloud\
+           |  +--rds.py\
+              +--other files\
               
 2. in pythonn code import rds
 3. To make connection with cloud RDS MYSQL databse, use 
