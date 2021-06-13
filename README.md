@@ -24,10 +24,10 @@ Before this delete all existing tables.
 
 
 ##Connecting to RDS using this code
-1. place RDS_credentials.txt file in current directory
+1. place RDS_credentials.txt file in current directory\
 +-- RDS_credentials.txt\
 +-- dir1\
-|   +--dir2\
+&nbsp;|   +--dir2\
 &nbsp; &nbsp; |   +--dir3 (clone this git repo here)\
 &nbsp; &nbsp; &nbsp; &nbsp; |  +--pcr_cloud\
 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; |  +--rds.py\
