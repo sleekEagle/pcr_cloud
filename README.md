@@ -23,3 +23,18 @@ Before this delete all existing tables.
 8. add these credentials to the s3_credentials.txt file in project home directory
 
 
+##Connecting to RDS using this code
+1. place RDS_credentials.txt file in current directory
++-- RDS_credentials.txt
++-- dir1
+|   +--dir2
+    |   +--dir3 (clone this git repo here)
+        |  +--pcr_cloud
+           |  +--rds.py
+              +--other files
+              
+2. in pythonn code import rds
+3. To make connection with cloud RDS MYSQL databse, use 
+rds.connect_cloud()
+4. with the rds module you can perform tasks such as getting all rows in a particular table and getting the last entry of a table
+
