@@ -43,19 +43,19 @@ rds.connect_cloud()
 
 ## Structure of Tables in the RDS cloud
 ### ema_data
-suid - INT
-primekey - VARCHAR(150)
-variablename - VARCHAR(150)
-answer - BLOB
-dirty - INT
-language - INT
-mode - INT
-version - INT
-completed - INT
-synced - INT
-ts - DATETIME
-dep_id - INT
-cloud_pkey - INT - primery key
+suid - INT\
+primekey - VARCHAR(150)\
+variablename - VARCHAR(150)\
+answer - BLOB\
+dirty - INT\
+language - INT\
+mode - INT\
+version - INT\
+completed - INT\
+synced - INT\
+ts - DATETIME\
+dep_id - INT\
+cloud_pkey - INT - primery key\
 
 
 
