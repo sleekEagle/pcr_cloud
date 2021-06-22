@@ -73,5 +73,17 @@ SentTimes - INT\
 speakerID - VARCHAR(500)\
 suid - VARCHAR(20)\
 
+### ema_storing_data
+time - DATETIME\
+event_vct - LONGTEXT\
+stats_vct - LONGTEXT\
+action - INT\
+reward - FLOAT\
+action_vct - LONGTEXT\
+message_name - LONGTEXT\
+uploaded - INT\
+dep_id - INT\
+p_key - BIGINT - primary key\
+
 
 
