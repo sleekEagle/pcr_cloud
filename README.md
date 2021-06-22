@@ -40,3 +40,22 @@ by loggin into aws console as root and navigating to the RDS instance. \
 rds.connect_cloud()
 4. with the rds module you can perform tasks such as getting all rows in a particular table and getting the last entry of a table
 
+
+## Structure of Tables in the RDS cloud
+### ema_data
+suid - INT
+primekey - VARCHAR(150)
+variablename - VARCHAR(150)
+answer - BLOB
+dirty - INT
+language - INT
+mode - INT
+version - INT
+completed - INT
+synced - INT
+ts - DATETIME
+dep_id - INT
+cloud_pkey - INT - primery key
+
+
+
