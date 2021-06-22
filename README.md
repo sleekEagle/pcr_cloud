@@ -57,5 +57,21 @@ ts - DATETIME\
 dep_id - INT\
 cloud_pkey - INT - primery key\
 
+### reward_data
+empathid - VARCHAR(45)\
+TimeSent - VARCHAR(20)\
+TimeReceived - VARCHAR(20)\
+Response - VARCHAR(20)\
+dep_id - INT\
+p_key - INT - primery key\
+ConnectionError - INT\
+Question - VARCHAR(5000)\
+QuestionName - VARCHAR(500)\
+QuestionType - VARCHAR(200)\
+Reactive - INT\
+SentTimes - INT\
+speakerID - VARCHAR(500)\
+suid - VARCHAR(20)\
+
 
 
