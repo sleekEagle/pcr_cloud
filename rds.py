@@ -21,7 +21,7 @@ def connect_cloud():
         print(e)
         return -1
     try:
-        conn_cloud = pymysql.connect(endpoint, user=username,port=port,passwd=password, db=database_name)
+        conn_cloud = pymysql.connect(host=endpoint, user=username,port=port,passwd=password, db=database_name)
         return conn_cloud
         if(not (type(conn_cloud) == pymysql.connections.Connection)):
             raise Exception("counld not obtain proper connection to RDS...")
@@ -33,7 +33,7 @@ def connect_cloud():
 def connect_local():
     conn_local=-1
     try:
-        conn_local=pymysql.connect('localhost','root','','ema')
+        conn_local=pymysql.connect(host='localhost',user='root',passwd='',db='ema')
         return conn_local
     except Exception as e:
         print(e)
