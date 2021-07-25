@@ -9,6 +9,7 @@ Created on Tue Oct 29 19:17:04 2019
 import json
 import home
 import csv
+import platform
 
 '''
 this code reads paramenters from parameters.json 
@@ -17,10 +18,16 @@ Call this code once you change aby parameters from parameters.json
 '''
 
 def get_project_dir(level_up=-1):
+    os=platform.system()
     current_dir=-1
     try:
         path=home.__file__
-        l=path.split('\\')
+        if(os=='Linux'):
+            l=path.split('/')
+        elif(os=='Windows'):
+            l=path.split('\\')
+        else:
+            raise Exception("current OS is unsupported!")
         current_dir='/'.join(l[:level_up])
         current_dir+='/'
     except:
