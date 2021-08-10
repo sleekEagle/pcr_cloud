@@ -217,7 +217,6 @@ def upload_unuploaded_rows(rds_connection,local_connection,table_name):
             val=local_connection.get_rows_with_value(column[0],table_name,local_pkey_name,next_unuploaded_pkey)
             val=val[0][0]
             val=str(val).replace("'","''")
-            print(val)
             val_list+="\'"+val+"\',"
         val_list=val_list[:-1]
          
