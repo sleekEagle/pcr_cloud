@@ -29,7 +29,7 @@ try:
     
     if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
         #do these tasks just at the start of the deployment
-        ema_db.upload_fixed_tables(local_connection,rds_connection)
+        #ema_db.upload_fixed_tables(local_connection,rds_connection)
         dep_data.upload_dep_data_table(rds_connection)
 except:
     print('cannot upload fixed data. Exception occured')
