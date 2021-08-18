@@ -86,4 +86,9 @@ dep_id - INT\
 p_key - BIGINT - primary key\
 
 
+## Authentication
+### RDS
+RDS authentication is handled in rds.py module. When you call connect_cloud(), It reads authentication file RDS_credentials.txt.
+This contains details needed to connect to the RDS instance in AWS. These details include endpoint, port, database name, username and password for a particular user.
+
 
