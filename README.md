@@ -98,6 +98,12 @@ endpoint,port,database_name,username,password
 
 Do not share credentials among users. Always create new credentails file for each new user. Only grant them the neccessary privillages. \
 
+In your code to connect to RDS instance of your choise,\
+```python
+rds_connection=rds.RDS() 
+#check isinstance(rds_connection,rds.RDS)
+```
+
 ### S3
 S3 authentication is handles by the module s3_functions.py. When you call the get_bucket() function, it reads the s3_credentials.txt file and use that details to 
 establish a connection with S3 storage. To create the s3_credentials.txt file, goto AWS console and users. Create a new user with IAM access to S3 storage. 
