@@ -92,7 +92,22 @@ Place the two credential files (RDS_credentials.txt and s3_credentials.txt) in y
 RDS authentication is handled in rds.py module. When you call connect_cloud(), It reads authentication file RDS_credentials.txt.
 This contains details needed to connect to the RDS instance in AWS. Refer to the mysql file user_operations.sql for a guide for various operations related to users (creating users, cranting them permissions,...etc.). Create a user and assign them a password as metntioned in user_operations.sql. Please use the password generator or similar one as mentioned there to create a password. RDS_credentials.txt file should contain following details\
 endpoint,port,database_name,username,password\
-****.****.rds.amazonaws.com,port_number,database_name,user1,strongpassword1234\
+????.????.rds.amazonaws.com,port_number,database_name,user1,strongpassword1234\
+
+Do not share credentials among users. Always create new credentails file for each new user. Only grant them the neccessary privillages. \
+
+### S3
+S3 authentication is handles by the module s3_functions.py. When you call the get_bucket() function, it reads the s3_credentials.txt file and use that details to 
+establish a connection with S3 storage. To create the s3_credentials.txt file, goto AWS console and users. Create a new user with IAM access to S3 storage. 
+Please give them the minimun necessary privillages. Do not share the credentails among users. S3_credentials.txt has the following fealds. \
+
+User name,Password,Access key ID,Secret access key,Console login link\
+
+Note that with IAM access, you will get an access token, not a password. password field must be left blank\
+
+
+
+
 
 
 
