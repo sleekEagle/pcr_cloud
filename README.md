@@ -24,10 +24,10 @@ Before this delete all existing tables.
 
 
 ## Connecting to RDS using this code
-You must have the RDS_credentials.txt file which contains the username, password, port and hostname of RDS instance runing on AWS. You can obtain this 
-by loggin into aws console as root and navigating to the RDS instance. \
-1. place RDS_credentials.txt file in current directory\
+You must have the RDS_credentials.txt and s3_credentials.txt files which contains the credential details for this user\
+1. place the credential files in current directory\
 +-- RDS_credentials.txt\
++-- s3_credentials.txt\
 +-- dir1\
 &emsp;|   +--dir2\
 &emsp; &emsp; |   +--dir3 (clone this git repo here)\
@@ -87,8 +87,12 @@ p_key - BIGINT - primary key\
 
 
 ## Authentication
+Place the two credential files (RDS_credentials.txt and s3_credentials.txt) in your directory structure as mentioned in the section "Connecting to RDS using this code" above.  
 ### RDS
 RDS authentication is handled in rds.py module. When you call connect_cloud(), It reads authentication file RDS_credentials.txt.
-This contains details needed to connect to the RDS instance in AWS. These details include endpoint, port, database name, username and password for a particular user.
+This contains details needed to connect to the RDS instance in AWS. Refer to the mysql file user_operations.sql for a guide for various operations related to users (creating users, cranting them permissions,...etc.). Create a user and assign them a password as metntioned in user_operations.sql. Please use the password generator or similar one as mentioned there to create a password. RDS_credentials.txt file should contain following details\
+endpoint,port,database_name,username,password\
+****.****.rds.amazonaws.com,port_number,database_name,user1,strongpassword1234\
+
 
 
