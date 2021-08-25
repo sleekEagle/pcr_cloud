@@ -38,12 +38,7 @@ def connect_local():
     except Exception as e:
         print(e)
         return -1
- #count the number of rows where column col_name = value
-    def get_num_rows_with_value(self,table_name,col_name,value,dep_id):
-        with self.conn.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE "+col_name +"=\""+str(value)+"\" AND dep_id=\""+str(dep_id)+"\"")
-            count=cursor.fetchall()[0][0]
-            return count        
+      
 class RDS:
     def __init__(self):
         print('initializing RDS connection...')
