@@ -38,7 +38,7 @@ def connect_local():
     except Exception as e:
         print(e)
         return -1
-      
+
 class RDS:
     def __init__(self):
         print('initializing RDS connection...')
