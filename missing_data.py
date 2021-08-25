@@ -17,13 +17,18 @@ import os
 import time
 import datetime
 import m2g
+import dep_data
+import rds
 
-def insert_missing_data(rds_connection,local_connection,table_name,missing_table_name):
+def insert_missing_data(rds_connection,local_connection,table_name,missing_table_name,date_col_name):
     res=-1
     try:
-        dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))   
-        cloud_count=rds_connection.get_num_rows(table_name,dep_id)
-        local_count=local_connection.get_num_rows(table_name)
+        dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
+        start_date=dep_data.get_start_date()
+
+        cloud_count=rds_connection.get_num_rows_greaterthan_value(table_name,date_col_name,start_date,dep_id)
+        local_count=local_connection.get_num_rows_greaterthan_value(table_name,date_col_name,start_date)
+        
         col_names='dep_id,ts,local_count,cloud_count'
         ts=str(datetime.datetime.fromtimestamp(time.time()))
         values="\'"+str(dep_id)+"\'," +"\'"+ str(ts)+"\'," + "\'"+str(local_count)+"\',"+"\'"+str(cloud_count)+"\'"
