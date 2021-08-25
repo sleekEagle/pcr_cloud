@@ -41,9 +41,9 @@ def upload_data():
     while(True):
         print('uploading data...')
         sleep_time=freq
+        rds_connection=rds.RDS() 
+        local_connection=rds.Local()
         try:
-            rds_connection=rds.RDS() 
-            local_connection=rds.Local()
             if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
                 ts_start=time.time()
                 #upload files to s3
@@ -56,6 +56,8 @@ def upload_data():
                 #upload M2G entries to RDS
                 print('uploading m2g data...')
                 try:
+                    rds_connection=rds.RDS() 
+                    local_connection=rds.Local()
                     m2g.upload_missing_entries(rds_connection)
                 except Exception as e:
                     print('Exception in controller ' + str(e))
@@ -63,12 +65,16 @@ def upload_data():
                 #ema_db.upoload_missing_data_ts(rds_connection,local_connection,'ema_data')
                 print('uploading reward_data table...')
                 try:
+                    rds_connection=rds.RDS() 
+                    local_connection=rds.Local()
                     ema_db.upload_unuploaded_rows(rds_connection,local_connection,'reward_data')
                 except Exception as e:
                     print('Exception in controller ' + str(e))
                     
                 print('uploading ema_storing_data table...')
                 try:
+                    rds_connection=rds.RDS() 
+                    local_connection=rds.Local()
                     ema_db.upload_unuploaded_rows(rds_connection,local_connection,'ema_storing_data')
                 except Exception as e:
                     print('Exception in controller ' + str(e))
@@ -110,7 +116,7 @@ def upload_data():
             time.sleep(int(sleep_time))
             
 #frequency to enter heart beat in seconds            
-heart_beat_freq=60*1
+heart_beat_freq=60*30
 def manage_heart_beat():
     while(True):
         print('hb')
