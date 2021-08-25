@@ -62,6 +62,22 @@ class RDS:
             cursor.execute(sqlquery)
             row=cursor.fetchall()
             return row
+
+    #get unique values of column col_name
+    def get_unique_values(self,table_name,col_name):
+        with self.conn.cursor() as cursor:
+            sqlquery="SELECT DISTINCT ("+str(col_name)+") FROM "+str(table_name)
+            cursor.execute(sqlquery)
+            row=cursor.fetchall()
+            return row
+    #get the current timestamp of the database
+    def get_ts(self):
+        with self.conn.cursor() as cursor:
+            sqlquery="SELECT CURRENT_TIMESTAMP"
+            cursor.execute(sqlquery)
+            row=cursor.fetchall()
+            return row
+     
         
     def get_column_names(self,table_name):
         with self.conn.cursor() as cursor:

@@ -9,7 +9,7 @@ Created on Tue Oct 29 19:17:04 2019
 import json
 import home
 import csv
-
+import sys
 '''
 this code reads paramenters from parameters.json 
 and adds them as environment variables.
@@ -17,10 +17,14 @@ Call this code once you change aby parameters from parameters.json
 '''
 
 def get_project_dir(level_up=-1):
+    os=sys.platform
     current_dir=-1
     try:
         path=home.__file__
-        l=path.split('\\')
+        if(os=='linux'):
+            l=path.split('/')
+        else:
+            l=path.split('\\')
         current_dir='/'.join(l[:level_up])
         current_dir+='/'
     except:
