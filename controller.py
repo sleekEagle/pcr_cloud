@@ -95,7 +95,10 @@ def upload_data():
                     
                 print('uploading ema_storing_data missing data...')
                 try:
-                    missing_data.insert_missing_data(rds_connection,local_connection,'ema_storing_data','missing_ema_storing_data')
+                    missing_data.insert_missing_data(rds_connection,local_connection,
+                                                     'ema_storing_data',
+                                                     'missing_ema_storing_data',
+                                                     'time')
                 except Exception as e:
                     print('Exception in controller ' + str(e))
                     

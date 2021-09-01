@@ -20,6 +20,11 @@ import m2g
 import dep_data
 import rds
 
+'''
+read number of missing data rows by comparing cloud and local and
+insert this into cloud table for missing data
+date_col_name is the name of the column with date and time from cloud table
+'''
 def insert_missing_data(rds_connection,local_connection,table_name,missing_table_name,date_col_name):
     res=-1
     try:
