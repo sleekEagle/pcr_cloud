@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Oct 29 19:17:04 2019
-
 @author: sleek_eagle
 """
 
 import json
 import home
 import csv
+import sys
 import platform
 
 '''
@@ -48,6 +48,3 @@ def get_parameters(parameter_file):
         with open(parameter_path, 'r') as f:
             param = json.load(f)[0]
     return param
-           
-    
-
