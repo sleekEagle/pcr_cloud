@@ -35,7 +35,7 @@ except:
     print('cannot upload fixed data. Exception occured')
 
 #how frequent we upload data (in seconds)
-freq=120*60
+freq=2*60*60
 def upload_data():
     print('in upload_data()')
     while(True):
@@ -49,7 +49,7 @@ def upload_data():
                 #upload files to s3
                 print('uploading s3 files...')
                 try:
-                    s3_upload.upload_file_not_in_cloud()
+                    not_uploaded=s3_upload.upload_file_not_in_cloud()
                 except Exception as e:
                     print('Exception in controller ' + str(e))
 
@@ -83,7 +83,7 @@ def upload_data():
                 #upload stats about data missing from the cloud
                 print('uploading s3 files missing data...')
                 try:
-                    missing_data.insert_missing_files_row(rds_connection)  
+                    missing_data.insert_missing_files_row(rds_connection,not_uploaded)
                 except Exception as e:
                     print('Exception in controller ' + str(e))
                     
@@ -104,7 +104,11 @@ def upload_data():
                     
                 print('uploading reward_data missing data...')
                 try:
-                    missing_data.insert_missing_data(rds_connection,local_connection,'reward_data','missing_reward_data')
+                    missing_data.insert_missing_data(rds_connection,
+                                                     local_connection,
+                                                     'reward_data',
+                                                     'missing_reward_data',
+                                                     'TimeSent')
                 except Exception as e:
                     print('Exception in controller ' + str(e))
                 

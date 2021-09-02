@@ -62,13 +62,13 @@ def insert_missing_M2G(rds_connection):
     return res
         
         
-def insert_missing_files_row(rds_connection):
+def insert_missing_files_row(rds_connection,missing_files):
     res=-1
     try:
         dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
-        local_files=s3_upload.get_local_files()
-        cloud_files=s3_upload.get_s3_files()
-        missing_files=s3_upload.list_diff(local_files,cloud_files)
+        #local_files=s3_upload.get_local_files()
+        #cloud_files=s3_upload.get_s3_files()
+        #missing_files=s3_upload.list_diff(local_files,cloud_files)
         col_names='dep_id,ts,local_count,cloud_count,missing'
         ts=str(datetime.datetime.fromtimestamp(time.time()))
         values="\'"+str(dep_id)+"\'," +"\'"+ str(ts)+"\'," + "\'"+str(len(local_files))+"\',"+"\'"+str(len(cloud_files))+"\',"+"\'"+str(len(missing_files))+"\'"
