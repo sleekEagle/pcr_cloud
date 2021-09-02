@@ -2,3 +2,4 @@ parameters.json.txt
 data/
 __pycache__/*.pyc
 *.pyc
+__pycache__/*.pyc

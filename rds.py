@@ -38,7 +38,7 @@ def connect_local():
     except Exception as e:
         print(e)
         return -1
-    
+
 class RDS:
     def __init__(self):
         print('initializing RDS connection...')
@@ -62,6 +62,22 @@ class RDS:
             cursor.execute(sqlquery)
             row=cursor.fetchall()
             return row
+
+    #get unique values of column col_name
+    def get_unique_values(self,table_name,col_name):
+        with self.conn.cursor() as cursor:
+            sqlquery="SELECT DISTINCT ("+str(col_name)+") FROM "+str(table_name)
+            cursor.execute(sqlquery)
+            row=cursor.fetchall()
+            return row
+    #get the current timestamp of the database
+    def get_ts(self):
+        with self.conn.cursor() as cursor:
+            sqlquery="SELECT CURRENT_TIMESTAMP"
+            cursor.execute(sqlquery)
+            row=cursor.fetchall()
+            return row
+     
         
     def get_column_names(self,table_name):
         with self.conn.cursor() as cursor:
@@ -87,6 +103,13 @@ class RDS:
     def get_num_rows_with_value(self,table_name,col_name,value,dep_id):
         with self.conn.cursor() as cursor:
             cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE "+col_name +"=\""+str(value)+"\" AND dep_id=\""+str(dep_id)+"\"")
+            count=cursor.fetchall()[0][0]
+            return count
+    
+    #count the number of rows where column col_name > value
+    def get_num_rows_greaterthan_value(self,table_name,col_name,value,dep_id):
+        with self.conn.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE "+col_name +">\""+str(value)+"\" AND dep_id=\""+str(dep_id)+"\"")
             count=cursor.fetchall()[0][0]
             return count
         
@@ -150,6 +173,12 @@ class Local(RDS):
                 cursor.execute("SELECT "+str(required_col)+" FROM "+table_name+" WHERE "+str(col_name) +"=\""+str(value)+"\"")
             rows=cursor.fetchall()
             return rows
+    #count the number of rows where column col_name > value
+    def get_num_rows_greaterthan_value(self,table_name,col_name,value):
+        with self.conn.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM "+table_name+" WHERE "+col_name +">\""+str(value)+"\"")
+            count=cursor.fetchall()[0][0]
+            return count
      #count all rows
     def get_num_rows(self,table_name):
         with self.conn.cursor() as cursor:

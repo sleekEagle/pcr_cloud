@@ -17,13 +17,23 @@ import os
 import time
 import datetime
 import m2g
+import dep_data
+import rds
 
-def insert_missing_data(rds_connection,local_connection,table_name,missing_table_name):
+'''
+read number of missing data rows by comparing cloud and local and
+insert this into cloud table for missing data
+date_col_name is the name of the column with date and time from cloud table
+'''
+def insert_missing_data(rds_connection,local_connection,table_name,missing_table_name,date_col_name):
     res=-1
     try:
-        dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))   
-        cloud_count=rds_connection.get_num_rows(table_name,dep_id)
-        local_count=local_connection.get_num_rows(table_name)
+        dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
+        start_date=dep_data.get_start_date()
+
+        cloud_count=rds_connection.get_num_rows_greaterthan_value(table_name,date_col_name,start_date,dep_id)
+        local_count=local_connection.get_num_rows_greaterthan_value(table_name,date_col_name,start_date)
+        
         col_names='dep_id,ts,local_count,cloud_count'
         ts=str(datetime.datetime.fromtimestamp(time.time()))
         values="\'"+str(dep_id)+"\'," +"\'"+ str(ts)+"\'," + "\'"+str(local_count)+"\',"+"\'"+str(cloud_count)+"\'"
@@ -52,13 +62,13 @@ def insert_missing_M2G(rds_connection):
     return res
         
         
-def insert_missing_files_row(rds_connection):
+def insert_missing_files_row(rds_connection,missing_files):
     res=-1
     try:
         dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
-        local_files=s3_upload.get_local_files()
-        cloud_files=s3_upload.get_s3_files()
-        missing_files=s3_upload.list_diff(local_files,cloud_files)
+        #local_files=s3_upload.get_local_files()
+        #cloud_files=s3_upload.get_s3_files()
+        #missing_files=s3_upload.list_diff(local_files,cloud_files)
         col_names='dep_id,ts,local_count,cloud_count,missing'
         ts=str(datetime.datetime.fromtimestamp(time.time()))
         values="\'"+str(dep_id)+"\'," +"\'"+ str(ts)+"\'," + "\'"+str(len(local_files))+"\',"+"\'"+str(len(cloud_files))+"\',"+"\'"+str(len(missing_files))+"\'"
