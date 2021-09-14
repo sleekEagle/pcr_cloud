@@ -219,9 +219,14 @@ def upload_unuploaded_rows(rds_connection,local_connection,table_name):
             val=str(val).replace("'","''")
             val_list+="\'"+val+"\',"
         val_list=val_list[:-1]
-         
-        res=rds_connection.insert_row(table_name,col_names,val_list)
-        res=local_connection.set_column(table_name,local_pkey_name,next_unuploaded_pkey,'Uploaded','1')
+        res=0
+        try:
+            res=rds_connection.insert_row(table_name,col_names,val_list)
+        except Exception as e:
+            print('Exception in ema_db.py : '+str(e))
+        #set the uploaded column of local table to 1 if row was uploaded successfully
+        if(res==1):
+            res=local_connection.set_column(table_name,local_pkey_name,next_unuploaded_pkey,'Uploaded','1')
         next_unuploaded_pkey=get_local_next_unuploaded_pkey(local_connection,table_name,local_pkey_name)
         
     print("No (more) data to upload")    
