@@ -12,9 +12,14 @@ from os.path import isfile, join
 import file_system_tasks
 import Log
 import dep_data
-
-
 import subprocess
+import logging
+from importlib import reload
+reload(logging)
+
+logging.basicConfig(level = logging.ERROR, 
+                    filename =Log.get_log_path(),
+                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
 
 #guide on how to trasfer files to s3 with aws cli
 #C:\Users\Meerkat\Desktop\Patient-Caregiver-Relationship\Patient-Caregiver-Relationship\generated_data\audio_storage\generated_speaker_id
@@ -30,8 +35,10 @@ def upload_files():
         paths=[project_dir+path for path in paths]
         paths=[path.replace('/','\\') for path in paths]
         dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
-    except:
-        print('Exception in reading files...')
+    except Exception as e:
+        print('Exception in reading files...' + str(e))
+        logging.error('setting up the upload')
+        
     
     for path in paths:
         print('uploading '+str(path))
@@ -39,8 +46,12 @@ def upload_files():
             res=aws_sync(paths[3],dep_id)
             if(res.returncode!=0):
                 print('Exception in uploading data')
+                logging.error('uploading data with AWS CLI')
         except:
             print('Exception in uploading data')
+            logging.error('invoking AWS cli')
+            
+
 
 def get_paths(items):
     paths=[]    

@@ -22,12 +22,22 @@ import missing_data
 import heart_beat
 import threading
 
+import logging
+from importlib import reload
+reload(logging)
+
+logging.basicConfig(level = logging.ERROR, 
+                    filename =Log.get_log_path(),
+                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+
+
 #connect to local and cloud(RDS) databases
 try:
     rds_connection=rds.RDS() 
     local_connection=rds.Local()
     
     if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
+        logging.info('local and remote db connections established')
         #do these tasks just at the start of the deployment
         #ema_db.upload_fixed_tables(local_connection,rds_connection)
         dep_data.upload_dep_data_table(rds_connection)
@@ -38,6 +48,7 @@ except:
 freq=2*60*60
 def upload_data():
     print('in upload_data()')
+    logging.info('starting the upload_data() function')
     while(True):
         print('uploading data...')
         sleep_time=freq
@@ -45,6 +56,7 @@ def upload_data():
         local_connection=rds.Local()
         try:
             if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
+                logging.info('local and remote db connections established')
                 ts_start=time.time()
                 #upload files to s3
                 print('uploading s3 files...')
