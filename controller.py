@@ -49,7 +49,7 @@ def upload_data():
                 #upload files to s3
                 print('uploading s3 files...')
                 try:
-                    not_uploaded=s3_upload.upload_file_not_in_cloud()
+                    not_uploaded=s3_upload.upload_files()
                 except Exception as e:
                     print('Exception in controller ' + str(e))
 

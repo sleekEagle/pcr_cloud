@@ -14,6 +14,34 @@ import Log
 import dep_data
 
 
+import subprocess
+
+#guide on how to trasfer files to s3 with aws cli
+#C:\Users\Meerkat\Desktop\Patient-Caregiver-Relationship\Patient-Caregiver-Relationship\generated_data\audio_storage\generated_speaker_id
+
+def aws_sync(dir_path,dep_id):
+    res=subprocess.run(["aws","s3","sync",dir_path,"s3://pcr-storage/"+str(dep_id)],
+                        capture_output=True)
+    return res
+def upload_files():
+    try:
+        paths=file_system_tasks.get_parameters('parameters.json')['param']['s3_upload_dirs'].split(',')
+        project_dir=file_system_tasks.get_project_dir(-3)[:-1]
+        paths=[project_dir+path for path in paths]
+        paths=[path.replace('/','\\') for path in paths]
+        dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
+    except:
+        print('Exception in reading files...')
+    
+    for path in paths:
+        print('uploading '+str(path))
+        try:
+            res=aws_sync(paths[3],dep_id)
+            if(res.returncode!=0):
+                print('Exception in uploading data')
+        except:
+            print('Exception in uploading data')
+
 def get_paths(items):
     paths=[]    
     for item in items:
