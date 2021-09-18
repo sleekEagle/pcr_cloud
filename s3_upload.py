@@ -86,7 +86,7 @@ def list_diff(local_files, cloud_files):
 
 
 def upload_file_not_in_cloud():
-    local_files,cloud_files,not_uploaded=-1,-1,-1
+    not_uploaded=-1
     s3.get_bucket()
     b=s3.pcr_storage
     if (b.name=='pcr-storage'):
@@ -104,7 +104,7 @@ def upload_file_not_in_cloud():
             #print('uploaded')
     else:
         Log.log_s3('bucket resource not found')
-    return local_files,cloud_files,not_uploaded
+    return not_uploaded
 
 
 
