@@ -126,6 +126,14 @@ class RDS:
             cursor.execute("SELECT * FROM "+table_name+" WHERE "+col_name +"=\""+str(value)+"\" AND dep_id=\""+str(dep_id)+"\"")
             rows=cursor.fetchall()
             return rows
+    
+    # get rows with values equal (=), greater than (>) or smaller than (<) to the given value
+    #operation is a string =,< or >    
+    def get_rows_value(self,table_name,col_name,value,dep_id,operation):
+        with self.conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM "+table_name+" WHERE "+col_name + " " + str(operation)+ " \""+str(value)+"\" AND dep_id=\""+str(dep_id)+"\"")
+            rows=cursor.fetchall()
+            return rows
         
     def get_primary_key_name(self,table_name):
         with self.conn.cursor() as cursor:

@@ -49,7 +49,11 @@ def upload_data():
                 #upload files to s3
                 print('uploading s3 files...')
                 try:
+<<<<<<< HEAD
                     not_uploaded=s3_upload.upload_files()
+=======
+                    local_files,cloud_files,not_uploaded=s3_upload.upload_file_not_in_cloud()
+>>>>>>> 4de561680309c6b7e15cc1d2562b101573ffe78a
                 except Exception as e:
                     print('Exception in controller ' + str(e))
 
@@ -83,15 +87,15 @@ def upload_data():
                 #upload stats about data missing from the cloud
                 print('uploading s3 files missing data...')
                 try:
-                    missing_data.insert_missing_files_row(rds_connection,not_uploaded)
+                    missing_data.insert_missing_files_row(rds_connection,local_files,cloud_files,not_uploaded)
                 except Exception as e:
                     print('Exception in controller ' + str(e))
                     
-                print('uploading m2g missing data...')    
-                try:
-                    missing_data.insert_missing_M2G(rds_connection) 
-                except Exception as e:
-                    print('Exception in controller ' + str(e))
+                #print('uploading m2g missing data...')    
+                #try:
+                #    missing_data.insert_missing_M2G(rds_connection) 
+                #except Exception as e:
+                #    print('Exception in controller ' + str(e))
                     
                 print('uploading ema_storing_data missing data...')
                 try:
@@ -116,6 +120,7 @@ def upload_data():
                 ts_end=time.time()
                 #elapsed time in minutes
                 elapsed=(ts_end-ts_start)
+                print("elapsed time = " +str(elapsed))
                 sleep_time=freq-elapsed
         except Exception as e:
             print('Exception in controller ' + str(e))

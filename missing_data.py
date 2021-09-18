@@ -62,7 +62,7 @@ def insert_missing_M2G(rds_connection):
     return res
         
         
-def insert_missing_files_row(rds_connection,missing_files):
+def insert_missing_files_row(rds_connection,local_files,cloud_files,not_uploaded):
     res=-1
     try:
         dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
@@ -71,7 +71,7 @@ def insert_missing_files_row(rds_connection,missing_files):
         #missing_files=s3_upload.list_diff(local_files,cloud_files)
         col_names='dep_id,ts,local_count,cloud_count,missing'
         ts=str(datetime.datetime.fromtimestamp(time.time()))
-        values="\'"+str(dep_id)+"\'," +"\'"+ str(ts)+"\'," + "\'"+str(len(local_files))+"\',"+"\'"+str(len(cloud_files))+"\',"+"\'"+str(len(missing_files))+"\'"
+        values="\'"+str(dep_id)+"\'," +"\'"+ str(ts)+"\'," + "\'"+str(len(local_files))+"\',"+"\'"+str(len(cloud_files))+"\',"+"\'"+str(len(not_uploaded))+"\'"
         res=rds_connection.insert_row('missing_files',col_names,values)
     except:
         print('exception when inserting to missing_files')
