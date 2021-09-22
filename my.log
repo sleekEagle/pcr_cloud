@@ -1,0 +1,12 @@
+ERROR:root:And this, too
+2021-09-18 18:17:54,682  ERROR      MainProcess  root And this, too
+2021-09-18 18:20:35,442  ERROR      [<ipython-input-20-e692b0071baf>:1] MainProcess  root And this, too
+2021-09-18 18:24:32,042  ERROR      <ipython-input-23-e692b0071baf> MainProcess  root And this, too
+2021-09-18 18:25:40,633  ERROR      <ipython-input-26-e692b0071baf> MainProcess  root And this, too
+2021-09-18 18:26:30,267  ERROR      <ipython-input-29-e692b0071baf> 1 MainProcess  root And this, too
+2021-09-18 18:28:00,175  ERROR      <ipython-input-33-e692b0071baf> 1 MainProcess  root And this, too
+2021-09-18 18:32:10,254,254 ERROR    [<ipython-input-46-e692b0071baf>:1] And this, too
+2021-09-18 18:44:10,505,505 ERROR    [test.py:16] And this, too
+2021-09-18 19:05:17,896,896 ERROR    [test.py:16] And this, too
+2021-09-18 19:05:39,903,903 ERROR    [[test.py:16 -             <module>()] And this, too
+2021-09-18 19:06:32,806,806 ERROR    [[test.py:17 -                 gooo()] And this, too

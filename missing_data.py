@@ -17,8 +17,28 @@ import os
 import time
 import datetime
 import m2g
-import dep_data
 import rds
+import Log
+import logging
+import ema_db
+
+from importlib import reload
+reload(logging)
+
+logging.basicConfig(level = logging.INFO, 
+                    filename =Log.get_log_path(),
+                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+
+def write_missing_log(rds_connection,local_connection):
+    try:
+        log_file=Log.get_missing_data_log_path()
+        data_diff_reward=ema_db.get_diff_data_count(rds_connection,local_connection,'reward_data','TimeSent')
+        data_diff_ema_storing=ema_db.get_diff_data_count(rds_connection,local_connection,'ema_storing_data','time')
+        Log.write_log_entry(log_file,data_diff_reward,'****reward_data table****')
+        Log.write_log_entry(log_file,data_diff_ema_storing,'****ema_storing_data table****')
+    except Exception as e:
+        print('Exception in write_missing_log() in missing data.py '+str(e))
+        logging.error('in write_missing_log() in missing data.py '+str(e))
 
 '''
 read number of missing data rows by comparing cloud and local and
@@ -62,16 +82,15 @@ def insert_missing_M2G(rds_connection):
     return res
         
         
-def insert_missing_files_row(rds_connection,local_files,cloud_files,not_uploaded):
+def insert_missing_files_row(rds_connection,local_connection):
     res=-1
     try:
         dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
-        #local_files=s3_upload.get_local_files()
-        #cloud_files=s3_upload.get_s3_files()
-        #missing_files=s3_upload.list_diff(local_files,cloud_files)
+        local_count=len(s3_upload.get_local_files())
+        cloud_count=s3_upload.count_cloud_items(str(dep_id),-1)
         col_names='dep_id,ts,local_count,cloud_count,missing'
         ts=str(datetime.datetime.fromtimestamp(time.time()))
-        values="\'"+str(dep_id)+"\'," +"\'"+ str(ts)+"\'," + "\'"+str(len(local_files))+"\',"+"\'"+str(len(cloud_files))+"\',"+"\'"+str(len(not_uploaded))+"\'"
+        values="\'"+str(dep_id)+"\'," +"\'"+ str(ts)+"\'," + "\'"+str(local_count)+"\',"+"\'"+str(cloud_count)+"\',"+"\'"+str(local_count-cloud_count)+"\'"
         res=rds_connection.insert_row('missing_files',col_names,values)
     except:
         print('exception when inserting to missing_files')

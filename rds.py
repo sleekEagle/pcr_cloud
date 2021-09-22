@@ -39,6 +39,11 @@ def connect_local():
         print(e)
         return -1
 
+dep_id="8022021"
+date_col="time"
+table_name="ema_storing_data"
+
+
 class RDS:
     def __init__(self):
         print('initializing RDS connection...')
@@ -141,13 +146,21 @@ class RDS:
             res=cursor.fetchall()
             return res[0][4]
         
+    def get_count_by_date(self,table_name,date_col,dep_id):  
+        with self.conn.cursor() as cursor:
+            com='select date('+str(date_col)+'),count(*) from '+str(table_name)+' where dep_id=\"'+str(dep_id)+'\" group by date('+str(date_col)+')'
+            cursor.execute(com)
+            res=cursor.fetchall()
+            res=[(str(r[0]),r[1]) for r in res]
+            return res
+        
     #updatea column of a row with a given value. Identify column via primary key
     def set_column(self,table_name,primary_key_name,primary_key,col_name,value):
         with self.conn.cursor() as cursor:
             res=cursor.execute("UPDATE " + table_name +" SET "+str(col_name)+"="+str(value)+" WHERE "+primary_key_name+"=\""+str(primary_key)+"\"")
             self.conn.commit()
             return res
-        
+    
 
 #local databse class inherits from cloud database class
 class Local(RDS):
@@ -193,4 +206,12 @@ class Local(RDS):
             cursor.execute("SELECT COUNT(*) FROM "+table_name)
             count=cursor.fetchall()[0][0]
             return count
+    
+    def get_count_by_date(self,table_name,date_col):  
+        with self.conn.cursor() as cursor:
+            com='select date('+str(date_col)+'),count(*) from '+str(table_name)+' group by date('+str(date_col)+')'
+            cursor.execute(com)
+            res=cursor.fetchall()
+            res=[(str(r[0]),r[1]) for r in res]
+            return res
            
