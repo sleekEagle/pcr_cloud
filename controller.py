@@ -108,13 +108,6 @@ def upload_db():
                 except Exception as e:
                     print('Exception in controller ' + str(e))
                     logging.error("in controller uploading data to ema_storing_data in RDS "+str(e))
-            
-                #upload stats about data missing from the cloud
-                print('uploading s3 files missing data...')
-                try:
-                    missing_data.insert_missing_files_row(rds_connection,local_connection)
-                except Exception as e:
-                    print('Exception in controller ' + str(e))
                     
                 print('uploading m2g missing data...')    
                 try:
