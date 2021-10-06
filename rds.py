@@ -59,11 +59,12 @@ class RDS:
             self.conn.commit()
             return res
    
+    table_name='M2G'
+    dep_id='6092021'
     #get the last enrey of the table (in cloud) which came from this deployment
     def get_last_entry(self,table_name,dep_id):   
         with self.conn.cursor() as cursor:
-            sqlquery="SELECT * FROM "+str(table_name)
-            sqlquery="SELECT * FROM "+str(table_name)+" WHERE "+str(table_name)+".dep_id=\"" + str(dep_id) +  "\" AND ("+str(table_name)+".ts IS NOT NULL) ORDER BY -p_key LIMIT 1"
+            sqlquery="SELECT * FROM "+str(table_name)+" WHERE "+str(table_name)+".dep_id=\"" + str(dep_id) +  "\" AND ("+str(table_name)+".ts IS NOT NULL) ORDER BY p_key DESC LIMIT 1"
             cursor.execute(sqlquery)
             row=cursor.fetchall()
             return row

@@ -9,6 +9,7 @@ import file_system_tasks
 from os import listdir
 from os.path import isfile, join
 import dep_data
+import datetime
 
 
 dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
@@ -56,7 +57,8 @@ def insert_row(rds_connection,col_names,dep_id,line):
 def get_file_name_fromdb_date(db_ts):
     try:
         date=db_ts.split(' ')[0]
-        name=date+"_MonitorLog.txt"
+       ts=last_db_raw[0][1]
+        previous_ name=date+"_MonitorLog.txt"
     except:
         print('exception when getting filename from db date')
     return name
@@ -67,19 +69,23 @@ def get_ts(line):
 
 def upload_missing_entries(rds_connection):
     file_names=get_sorted_file_names()
+    dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
     if(isinstance(file_names,list) and len(file_names)>0):
-        last_db_raw=rds_connection.get_last_entry('M2G','999')
+        last_db_raw=rds_connection.get_last_entry('M2G',dep_id)
+        last_db_ts=last_db_raw[0][1]
+        last_db_date=str(last_db_ts)[0:10]
+        
         if(isinstance(last_db_raw,tuple)):
             last_db_ts="-1"
             start_date=dep_data.get_start_date()
+            max_date=max(start_date,previous_db_date)
             #select file names which were created after the start date of deployment
-            file_names=[f for f in file_names if f[0:10]>start_date]
+            file_names=[f for f in file_names if f[0:10]>=max_date]
             file_name=file_names[0]
             if(len(last_db_raw) > 0):
-                last_db_ts=last_db_raw[0][1]
-                file_name=get_file_name_fromdb_date(str(last_db_ts))
+                last_uploaded_file=get_file_name_fromdb_date(str(last_db_ts))
             for f in file_names:
-                if(f<file_name):
+                if(f<last_uploaded_file):
                     continue
                 lines=read_file(f)
                 if(isinstance(lines,list)):
