@@ -52,17 +52,6 @@ def insert_row(rds_connection,col_names,dep_id,line):
     res=rds_connection.insert_row('M2G',col_names,s)
     return res
 
-              
-#get log file name form db_date
-def get_file_name_fromdb_date(db_ts):
-    try:
-        date=db_ts.split(' ')[0]
-       ts=last_db_raw[0][1]
-        previous_ name=date+"_MonitorLog.txt"
-    except:
-        print('exception when getting filename from db date')
-    return name
-
 def get_ts(line):
     return line.split(',')[0]
 
@@ -76,14 +65,12 @@ def upload_missing_entries(rds_connection):
         last_db_date=str(last_db_ts)[0:10]
         
         if(isinstance(last_db_raw,tuple)):
-            last_db_ts="-1"
             start_date=dep_data.get_start_date()
-            max_date=max(start_date,previous_db_date)
+            max_date=max(start_date,last_db_date)
             #select file names which were created after the start date of deployment
             file_names=[f for f in file_names if f[0:10]>=max_date]
-            file_name=file_names[0]
             if(len(last_db_raw) > 0):
-                last_uploaded_file=get_file_name_fromdb_date(str(last_db_ts))
+                last_uploaded_file=str(last_db_ts)[0:10]+"_MonitorLog.txt"
             for f in file_names:
                 if(f<last_uploaded_file):
                     continue
