@@ -130,7 +130,7 @@ dep_id (deployment id), ts (timestamp of the local machine) , p_key (primary key
 
 ```
 A monitoring program running in an EC2 instance monitors this table and detects when a deployment did not upload heartbeat in 2 hours (this, also is configurable in code). Monitoring program can also detect new deployments when they start uploading a heartbeat. When some out-of-the-ordinary is detected, the program uses the code in slack.py to message a slack channel (as defined by the secret slack url in the file slack_secret.txt)\
-Tutorial on how to sendslack channel messages with HTTPS : \
+Tutorial on how to send slack channel messages with HTTPS : \
 https://api.slack.com/messaging/webhooks\
 
 ### Running monitoring program in a remote machine (e.g AWS EC2)
