@@ -28,6 +28,7 @@ You must have the RDS_credentials.txt and s3_credentials.txt files which contain
 1. place the credential files in current directory\
 +-- RDS_credentials.txt\
 +-- s3_credentials.txt\
++-- slack_secret.txt\
 +-- dir1\
 &emsp;|   +--dir2\
 &emsp; &emsp; |   +--dir3 (clone this git repo here)\
@@ -112,6 +113,14 @@ Please give them the minimun necessary privillages. Do not share the credentails
 User name,Password,Access key ID,Secret access key,Console login link
 ```
 Note that with IAM access, you will get an access token, not a password. password field must be left blank\
+
+### slack
+The code in monitor.py monitors the heartbeat of all deployments and send a message if a deployment is offline. Place the slack app's secret url 
+in slack_secret.txt file. slack_secret.txt file has the following format. \
+```
+url
+#@@ffoo/$%$t/long_secret_url*4*$%&2
+```
 
 
 
