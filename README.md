@@ -122,6 +122,17 @@ url
 #@@ffoo/$%$t/long_secret_url*4*$%&2
 ```
 
+## Heartbeat and Monitoring program
+All the deployments upload a row into the RDS table sch_data.heart_beat every 30 mins (this frequency of uploading is configurable in code).
+The table sch_data.heart_beat has the following columns\
+```
+dep_id (deployment id), ts (timestamp of the local machine) , p_key (primary key), updated_ts (timestamp of the database when the row was updated)
+
+```
+A monitoring program running in an EC2 instance monitors this table and detects when a deployment did not upload heartbeat in 2 hours (this, also is configurable in code). Monitoring program can also detect new deployments when they start uploading a heartbeat. When some out-of-the-ordinary is detected, the program uses the code in slack.py to message a slack channel (as defined by the secret slack url in the file slack_secret.txt)\
+Tutorial on how to sendslack channel messages with HTTPS : \
+https://api.slack.com/messaging/webhooks\
+
 
 
 
