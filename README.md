@@ -137,15 +137,9 @@ https://api.slack.com/messaging/webhooks\
 1. download the key file (.pem) from AWS that can be used to connect to the instance
 2. ssh -i /path/to/pem/file.pem user@instance_url
 3. goto project directory
-4. nohup python3 -u monitor.py < /dev/null > /dev/null 2>&1 & \
-What does this do ? read :\
-https://unix.stackexchange.com/questions/167972/why-does-my-python-background-process-end-when-ssh-session-is-terminated
-summary : \
-if you just use python3 monitor.py, the program terminates as soon as the SSH session is terminated. This is because the program 
-no longer would have a STDIN, STDOUT or STDERR. So we have to redirect them to a null fill (ignore them) so the process would 
-become a daemon (background process)\
-5. use command ps to list running processes
-6. you can use kill process_id to terminate the process if needed. 
+4. use screen to start a background process. Read more about screen :\
+https://www.tecmint.com/keep-remote-ssh-sessions-running-after-disconnection/ \
+
 
 
 
