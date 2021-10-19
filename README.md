@@ -137,7 +137,7 @@ https://api.slack.com/messaging/webhooks\
 1. download the key file (.pem) from AWS that can be used to connect to the instance
 2. ssh -i /path/to/pem/file.pem user@instance_url
 3. goto project directory
-4. nohup python3 -u monitor.py < /dev/null > /dev/null 2>&1 &
+4. nohup python3 -u monitor.py < /dev/null > /dev/null 2>&1 & \
 What does this do ? read :\
 https://unix.stackexchange.com/questions/167972/why-does-my-python-background-process-end-when-ssh-session-is-terminated
 summary : \
