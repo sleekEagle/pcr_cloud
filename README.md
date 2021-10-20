@@ -141,6 +141,13 @@ https://api.slack.com/messaging/webhooks\
 https://www.tecmint.com/keep-remote-ssh-sessions-running-after-disconnection/ \
 
 ### Tips on screen 
+starting a background process with screen :\
+```
+$ screen
+```
+Then run any command on the screen environment. Then press Ctrl+a immiediately followed by d to detach screen from terminal. 
+So when we close the terminal (or close the ssh session) the process will keep running. \
+
 list all processes running in screen  : \
 ```
 $ screen -ls
