@@ -140,6 +140,16 @@ https://api.slack.com/messaging/webhooks\
 4. use screen to start a background process. Read more about screen :\
 https://www.tecmint.com/keep-remote-ssh-sessions-running-after-disconnection/ \
 
+### Tips on screen 
+list all processes running in screen  : \
+```
+$ screen -ls
+```
+close a session :\
+```
+$ screen -XS <session-id> quit
+```
+
 
 
 
