@@ -137,11 +137,11 @@ https://api.slack.com/messaging/webhooks\
 1. download the key file (.pem) from AWS that can be used to connect to the instance
 2. ssh -i /path/to/pem/file.pem user@instance_url
 3. goto project directory
-4. use screen to start a background process. Read more about screen :\
+4. use screen to start a background process. Read more about screen : \
 https://www.tecmint.com/keep-remote-ssh-sessions-running-after-disconnection/ \
 
 ### Tips on screen 
-starting a background process with screen :\
+starting a background process with screen : \
 ```
 $ screen
 ```
@@ -152,7 +152,7 @@ list all processes running in screen  : \
 ```
 $ screen -ls
 ```
-close a session :\
+close a session : \
 ```
 $ screen -XS <session-id> quit
 ```
