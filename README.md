@@ -152,7 +152,7 @@ list all processes running in screen  : \
 ```
 $ screen -ls
 ```
-close a session : \
+close a session :  
 ```
 $ screen -XS <session-id> quit
 ```
