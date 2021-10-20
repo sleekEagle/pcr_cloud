@@ -24,8 +24,8 @@ Before this delete all existing tables.
 
 
 ## Connecting to RDS using this code
-You must have the RDS_credentials.txt and s3_credentials.txt files which contains the credential details for this user\
-1. place the credential files in current directory\
+You must have the RDS_credentials.txt and s3_credentials.txt files which contains the credential details for this user  
+1. place the credential files in current directory  
 +-- RDS_credentials.txt\
 +-- s3_credentials.txt\
 +-- slack_secret.txt\
