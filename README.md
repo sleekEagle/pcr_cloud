@@ -34,7 +34,7 @@ You must have the RDS_credentials.txt and s3_credentials.txt files which contain
 &emsp; &emsp; |   +--dir3 (clone this git repo here)\
 &emsp; &emsp; &emsp; &emsp; |  +--pcr_cloud\
 &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; |  +--rds.py\
-&emsp; &emsp; &emsp; &emsp; &emsp; &emsp; +--other files\
+&emsp; &emsp; &emsp; &emsp; &emsp; &emsp; +--other files  
               
 2. in pythonn code import rds
 3. To make connection with cloud RDS MYSQL databse, use 
