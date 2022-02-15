@@ -20,13 +20,7 @@ from concurrent.futures import ThreadPoolExecutor
 import rds
 import missing_data
 import heart_beat
-
-from importlib import reload
-reload(logging)
-
-logging.basicConfig(level = logging.INFO, 
-                    filename =Log.get_log_path(),
-                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+import threading
 
 #connect to local and cloud(RDS) databases
 try:
@@ -34,52 +28,31 @@ try:
     local_connection=rds.Local()
     
     if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
-        logging.info('local and remote db connections established')
         #do these tasks just at the start of the deployment
         #ema_db.upload_fixed_tables(local_connection,rds_connection)
         dep_data.upload_dep_data_table(rds_connection)
 except:
     print('cannot upload fixed data. Exception occured')
-    logging.error('cannot make connections to the databases.')
-
 
 #how frequent we upload data (in seconds)
-file_freq=3.17*60*60
-def upload_files():
-    while(True):
-        sleep_time=file_freq
-        print('in upload_files()')
-        logging.info('starting the upload_files() function')
-        try:
-            ts_start=time.time()
-            
-            s3_upload.upload_files()
-            
-            ts_end=time.time()
-            #elapsed time in seconds
-            elapsed=(ts_end-ts_start)
-            sleep_time=freq-elapsed
-        except Exception as e:
-            print('Exception in controller ' + str(e))
-            logging.error('starting the upload_files() function')
-        if(sleep_time>60):
-            time.sleep(int(sleep_time))
-
-
 freq=2*60*60
-def upload_db():
-    print('in upload_db()')
-    logging.info('starting the upload_db() function')
+def upload_data():
+    print('in upload_data()')
     while(True):
-        print('uploading data to RDS db...')
+        print('uploading data...')
         sleep_time=freq
         rds_connection=rds.RDS() 
         local_connection=rds.Local()
         try:
             if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
-                logging.info('local and remote db connections established')
                 ts_start=time.time()
-                
+                #upload files to s3
+                print('uploading s3 files...')
+                try:
+                    not_uploaded=s3_upload.upload_file_not_in_cloud()
+                except Exception as e:
+                    print('Exception in controller ' + str(e))
+
                 #upload M2G entries to RDS
                 print('uploading m2g data...')
                 try:
@@ -88,7 +61,6 @@ def upload_db():
                     m2g.upload_missing_entries(rds_connection)
                 except Exception as e:
                     print('Exception in controller ' + str(e))
-                    logging.error("in controller uploading m2g entries to rds" + str(e))
                 #upload EMA tables to RDS
                 #ema_db.upoload_missing_data_ts(rds_connection,local_connection,'ema_data')
                 print('uploading reward_data table...')
@@ -98,7 +70,6 @@ def upload_db():
                     ema_db.upload_unuploaded_rows(rds_connection,local_connection,'reward_data')
                 except Exception as e:
                     print('Exception in controller ' + str(e))
-                    logging.error("in controller uploading data to reward_data in RDS "+str(e))
                     
                 print('uploading ema_storing_data table...')
                 try:
@@ -107,7 +78,14 @@ def upload_db():
                     ema_db.upload_unuploaded_rows(rds_connection,local_connection,'ema_storing_data')
                 except Exception as e:
                     print('Exception in controller ' + str(e))
-                    logging.error("in controller uploading data to ema_storing_data in RDS "+str(e))
+                
+            
+                #upload stats about data missing from the cloud
+                print('uploading s3 files missing data...')
+                try:
+                    missing_data.insert_missing_files_row(rds_connection,not_uploaded)
+                except Exception as e:
+                    print('Exception in controller ' + str(e))
                     
                 print('uploading m2g missing data...')    
                 try:
@@ -117,12 +95,26 @@ def upload_db():
                     
                 print('uploading ema_storing_data missing data...')
                 try:
-                    missing_data.write_missing_log(rds_connection,local_connection)
+                    missing_data.insert_missing_data(rds_connection,local_connection,
+                                                     'ema_storing_data',
+                                                     'missing_ema_storing_data',
+                                                     'time')
                 except Exception as e:
                     print('Exception in controller ' + str(e))
+                    
+                print('uploading reward_data missing data...')
+                try:
+                    missing_data.insert_missing_data(rds_connection,
+                                                     local_connection,
+                                                     'reward_data',
+                                                     'missing_reward_data',
+                                                     'TimeSent')
+                except Exception as e:
+                    print('Exception in controller ' + str(e))
+                
             
                 ts_end=time.time()
-                #elapsed time in seconds
+                #elapsed time in minutes
                 elapsed=(ts_end-ts_start)
                 sleep_time=freq-elapsed
         except Exception as e:
@@ -145,6 +137,8 @@ def manage_heart_beat():
 
 
 threading.Thread(target=manage_heart_beat).start()
-threading.Thread(target=upload_db).start()
-threading.Thread(target=upload_files).start()
+threading.Thread(target=upload_data).start()
+
+
+    
 
