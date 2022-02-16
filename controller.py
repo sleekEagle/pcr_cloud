@@ -21,63 +21,94 @@ import rds
 import missing_data
 import heart_beat
 import threading
+import file_system_tasks
+from inspect import currentframe, getframeinfo
 
 #connect to local and cloud(RDS) databases
-try:
-    rds_connection=rds.RDS() 
-    local_connection=rds.Local()
-    
-    if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
-        #do these tasks just at the start of the deployment
-        #ema_db.upload_fixed_tables(local_connection,rds_connection)
-        dep_data.upload_dep_data_table(rds_connection)
-except:
-    print('cannot upload fixed data. Exception occured')
+def connect_dbs():
+    rds_connection,local_connection=-1,-1
+    try:
+        #setting logger
+        log_path=Log.get_log_path()
+        Log.reset_logger()
+        Log.set_logger(log_path)
+        
+        Log.write_info("trying to connect to RDS")
+        rds_connection=rds.RDS() 
+        Log.write_info("connected to RDS successfully")
+        Log.write_info("trying to connect to local DB")
+        local_connection=rds.Local()
+        Log.write_info("Local DB connection successful")
+        
+        if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
+            #do these tasks just at the start of the deployment
+            #ema_db.upload_fixed_tables(local_connection,rds_connection)
+            dep_data.upload_dep_data_table(rds_connection)
+    except:
+        print('cannot upload fixed data. Exception occured')
+        Log.write_error("Error connecting to local/cloud DB")
+    return rds_connection,local_connection
 
 #how frequent we upload data (in seconds)
 freq=2*60*60
 def upload_data():
     print('in upload_data()')
+    Log.write_info("upload_data() of controller.py starting uploading data")
     while(True):
+        #setting logger
+        log_path=Log.get_log_path()
+        Log.reset_logger()
+        Log.set_logger(log_path)
+        
         print('uploading data...')
         sleep_time=freq
-        rds_connection=rds.RDS() 
-        local_connection=rds.Local()
         try:
             if(isinstance(rds_connection,rds.RDS) and isinstance(local_connection,rds.Local)):
                 ts_start=time.time()
                 #upload files to s3
                 print('uploading s3 files...')
+                Log.write_info("getting ready to upload files to S3")
+                rds_connection,local_connection = connect_dbs()
                 try:
                     not_uploaded=s3_upload.upload_file_not_in_cloud()
                 except Exception as e:
                     print('Exception in controller ' + str(e))
+                    Log.write_error("Error in uploading files to S3")
 
                 #upload M2G entries to RDS
                 print('uploading m2g data...')
+                Log.write_info("getting ready to upload M2G data")
+                rds_connection,local_connection = connect_dbs()
                 try:
                     rds_connection=rds.RDS() 
                     local_connection=rds.Local()
                     m2g.upload_missing_entries(rds_connection)
                 except Exception as e:
                     print('Exception in controller ' + str(e))
+                    Log.write_error("Error in uploading M2G data")
                 #upload EMA tables to RDS
                 #ema_db.upoload_missing_data_ts(rds_connection,local_connection,'ema_data')
                 print('uploading reward_data table...')
+                Log.write_info("getting ready to upload reward_data table ")
+                rds_connection,local_connection = connect_dbs()
                 try:
                     rds_connection=rds.RDS() 
                     local_connection=rds.Local()
                     ema_db.upload_unuploaded_rows(rds_connection,local_connection,'reward_data')
                 except Exception as e:
                     print('Exception in controller ' + str(e))
+                    Log.write_error("Error in uploading reward_data table")
                     
                 print('uploading ema_storing_data table...')
+                Log.write_info("getting ready to upload ema_storing_data table")
+                rds_connection,local_connection = connect_dbs()
                 try:
                     rds_connection=rds.RDS() 
                     local_connection=rds.Local()
                     ema_db.upload_unuploaded_rows(rds_connection,local_connection,'ema_storing_data')
                 except Exception as e:
                     print('Exception in controller ' + str(e))
+                    Log.write_error("Error in uploading ema_storing_data table")
                 
             
                 #upload stats about data missing from the cloud
