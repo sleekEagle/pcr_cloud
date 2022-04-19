@@ -81,6 +81,7 @@ def upload_db():
                 ts_start=time.time()
                 
                 #upload M2G entries to RDS
+                '''
                 print('uploading m2g data...')
                 try:
                     rds_connection=rds.RDS() 
@@ -89,6 +90,8 @@ def upload_db():
                 except Exception as e:
                     print('Exception in controller ' + str(e))
                     logging.error("in controller uploading m2g entries to rds" + str(e))
+                '''
+                    
                 #upload EMA tables to RDS
                 #ema_db.upoload_missing_data_ts(rds_connection,local_connection,'ema_data')
                 print('uploading reward_data table...')
@@ -109,17 +112,15 @@ def upload_db():
                     print('Exception in controller ' + str(e))
                     logging.error("in controller uploading data to ema_storing_data in RDS "+str(e))
 
+                '''
                 print('uploading m2g missing data...')    
                 try:
                     missing_data.insert_missing_M2G(rds_connection) 
                 except Exception as e:
                     print('Exception in controller ' + str(e))
-                    
-                print('uploading ema_storing_data missing data...')
-                try:
-                    missing_data.write_missing_log(rds_connection,local_connection)
-                except Exception as e:
-                    print('Exception in controller ' + str(e))
+                '''   
+                
+               
             
                 ts_end=time.time()
                 #elapsed time in seconds
@@ -127,6 +128,24 @@ def upload_db():
                 sleep_time=freq-elapsed
         except Exception as e:
             print('Exception in controller ' + str(e))
+        if(sleep_time>60):
+            time.sleep(int(sleep_time))
+            
+#frequency to create missing data reports in seconds
+missing_data_freq=24*60*60
+def log_missing_data():
+    while(True):
+        ts_start=time.time()
+        print("creating missing data reports...")
+        print('creating ema_storing_data and reward_data missing logs...')
+        try:
+            missing_data.write_missing_log(rds_connection,local_connection)
+        except Exception as e:
+            print('Exception in controller ' + str(e))
+        ts_end=time.time()
+        #elapsed time in seconds
+        elapsed=(ts_end-ts_start)
+        sleep_time=missing_data_freq-elapsed    
         if(sleep_time>60):
             time.sleep(int(sleep_time))
             
@@ -147,4 +166,6 @@ def manage_heart_beat():
 threading.Thread(target=manage_heart_beat).start()
 threading.Thread(target=upload_db).start()
 threading.Thread(target=upload_files).start()
+threading.Thread(target=log_missing_data).start()
+
 
