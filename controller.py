@@ -50,6 +50,7 @@ def connect_dbs():
     return rds_connection,local_connection
 
 #how frequent we upload data (in seconds)
+# this uploads the files
 freq=2*60*60
 def upload_data():
     print('in upload_data()')
