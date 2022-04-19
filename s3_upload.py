@@ -12,6 +12,46 @@ from os.path import isfile, join
 import file_system_tasks
 import Log
 import dep_data
+import subprocess
+import logging
+from importlib import reload
+reload(logging)
+
+logging.basicConfig(level = logging.ERROR, 
+                    filename =Log.get_log_path(),
+                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+
+#guide on how to trasfer files to s3 with aws cli
+#C:\Users\Meerkat\Desktop\Patient-Caregiver-Relationship\Patient-Caregiver-Relationship\generated_data\audio_storage\generated_speaker_id
+
+def aws_sync(dir_path,dep_id):
+    dir_name=dir_path.split('\\')[-1]
+    res=subprocess.run(["aws","s3","sync",dir_path,"s3://pcr-storage/"+str(dep_id)+"/"+str(dir_name)+"/"],
+                        capture_output=True)
+    return res
+def upload_files():
+    try:
+        paths=file_system_tasks.get_parameters('parameters.json')['param']['s3_upload_dirs'].split(',')
+        project_dir=file_system_tasks.get_project_dir(-3)[:-1]
+        paths=[project_dir+path for path in paths]
+        paths=[path.replace('/','\\') for path in paths]
+        dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
+    except Exception as e:
+        print('Exception in reading files...' + str(e))
+        logging.error('setting up the upload')
+        
+    
+    for path in paths:
+        print('uploading '+str(path))
+        try:
+            res=aws_sync(path,dep_id)
+            if(res.returncode!=0):
+                print('Exception in uploading data')
+                logging.error('uploading data with AWS CLI')
+        except:
+            print('Exception in uploading data')
+            logging.error('invoking AWS cli')
+            
 
 
 def get_paths(items):
@@ -56,6 +96,18 @@ def list_diff(local_files, cloud_files):
             upload_list.append(local_file)
     return upload_list
 
+#let dir_name=-1 to count all items belonging to a deployment
+def count_cloud_items(dep_id,dir_name):
+    s3.get_bucket()
+    b=s3.pcr_storage
+    if(dir_name==-1):
+        objects = b.objects.filter(Prefix=dep_id+'/')
+    else:
+        objects = b.objects.filter(Prefix=dep_id+'/'+dir_name)
+    count=0
+    for o in objects:
+        count+=1
+    return count
 
 def upload_file_not_in_cloud():
     not_uploaded=-1
@@ -77,6 +129,9 @@ def upload_file_not_in_cloud():
     else:
         Log.log_s3('bucket resource not found')
     return not_uploaded
+
+
+
 
 
 

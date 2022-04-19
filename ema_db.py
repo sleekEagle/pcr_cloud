@@ -26,9 +26,10 @@ def get_local_next_unuploaded_pkey(local_connection,table_name,pkey):
     p_key=-1
     try:
         res=local_connection.get_rows_with_value(pkey,table_name,'Uploaded','0')
-        res_list=list(res)
-        random.shuffle(res_list)
-        p_key=res_list[0][0]
+        res=[item[0] for item in res]
+        #randomize the unuploaded rows to avaoid trying to upload the same row in case of an error
+        random.shuffle(res)
+        p_key=res[0]
     except Exception as e:
         print(e)
     return p_key
@@ -199,6 +200,26 @@ def upoload_missing_data_ts(rds_connection,local_connection,table_name):
         print('finished uploading data.')
     except Exception as e:
         print(e)
+        
+
+def get_diff_data_count(rds_connection,local_connection,table_name,date_col):
+    dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
+    cloud_count=rds_connection.get_count_by_date(table_name,date_col,dep_id)   
+    local_count=local_connection.get_count_by_date(table_name,date_col)  
+    start_date=dep_data.get_start_date()
+    count_list=[]
+    for item in local_count:
+        if(item[0]<start_date):
+            continue
+        counts=(item[0],item[1],get_counts_on_date(cloud_count,item[0]))
+        count_list.append(counts)
+    return count_list
+
+def get_counts_on_date(count_array,date):
+    for item in count_array:
+        if(item[0]==date):
+            return item[1]
+    return 0
 
         
 def upload_unuploaded_rows(rds_connection,local_connection,table_name):
