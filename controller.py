@@ -142,6 +142,13 @@ def log_missing_data():
             missing_data.write_missing_log(rds_connection,local_connection)
         except Exception as e:
             print('Exception in controller ' + str(e))
+            
+        print('creating a report file with details on missing files on cloud...')
+        try:
+            missing_data.create_report_file()
+        except Exception as e:
+            print('Exception in controller ' + str(e))
+            
         ts_end=time.time()
         #elapsed time in seconds
         elapsed=(ts_end-ts_start)

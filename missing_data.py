@@ -116,5 +116,6 @@ def create_report_file():
         os.remove(report_file)
     #write new data to file     
     with open(report_file, 'w') as f:
+        f.write("local file path , is this in the cloud ?\n")
         for item in report:
             f.write("%s\n" % item)
