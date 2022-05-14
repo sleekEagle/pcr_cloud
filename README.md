@@ -24,16 +24,17 @@ Before this delete all existing tables.
 
 
 ## Connecting to RDS using this code
-You must have the RDS_credentials.txt and s3_credentials.txt files which contains the credential details for this user\
-1. place the credential files in current directory\
+You must have the RDS_credentials.txt and s3_credentials.txt files which contains the credential details for this user  
+1. place the credential files in current directory  
 +-- RDS_credentials.txt\
 +-- s3_credentials.txt\
++-- slack_secret.txt\
 +-- dir1\
 &emsp;|   +--dir2\
 &emsp; &emsp; |   +--dir3 (clone this git repo here)\
 &emsp; &emsp; &emsp; &emsp; |  +--pcr_cloud\
 &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; |  +--rds.py\
-&emsp; &emsp; &emsp; &emsp; &emsp; &emsp; +--other files\
+&emsp; &emsp; &emsp; &emsp; &emsp; &emsp; +--other files  
               
 2. in pythonn code import rds
 3. To make connection with cloud RDS MYSQL databse, use 
@@ -113,10 +114,45 @@ User name,Password,Access key ID,Secret access key,Console login link
 ```
 Note that with IAM access, you will get an access token, not a password. password field must be left blank\
 
+### slack
+The code in monitor.py monitors the heartbeat of all deployments and send a message if a deployment is offline. Place the slack app's secret url 
+in slack_secret.txt file. slack_secret.txt file has the following format. \
+```
+url
+#@@ffoo/$%$t/long_secret_url*4*$%&2
+```
 
+## Heartbeat and Monitoring program
+All the deployments upload a row into the RDS table sch_data.heart_beat every 30 mins (this frequency of uploading is configurable in code).
+The table sch_data.heart_beat has the following columns\
+```
+dep_id (deployment id), ts (timestamp of the local machine) , p_key (primary key), updated_ts (timestamp of the database when the row was updated)
 
+```
+A monitoring program running in an EC2 instance monitors this table and detects when a deployment did not upload heartbeat in 2 hours (this, also is configurable in code). Monitoring program can also detect new deployments when they start uploading a heartbeat. When some out-of-the-ordinary is detected, the program uses the code in slack.py to message a slack channel (as defined by the secret slack url in the file slack_secret.txt)\
+Tutorial on how to send slack channel messages with HTTPS : \
+https://api.slack.com/messaging/webhooks\
 
+### Running monitoring program in a remote machine (e.g AWS EC2)
+1. download the key file (.pem) from AWS that can be used to connect to the instance
+2. ssh -i /path/to/pem/file.pem user@instance_url
+3. goto project directory
+4. use screen to start a background process. Read more about screen : \
+https://www.tecmint.com/keep-remote-ssh-sessions-running-after-disconnection/ \
 
+### Tips on screen 
+starting a background process with screen : \
+```
+$ screen
+```
+Then run any command on the screen environment. Then press Ctrl+a immiediately followed by d to detach screen from terminal. 
+So when we close the terminal (or close the ssh session) the process will keep running. \
 
-
-
+list all processes running in screen  : \
+```
+$ screen -ls
+```
+close a session :  
+```
+$ screen -XS <session-id> quit
+```
