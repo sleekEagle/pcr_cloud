@@ -156,3 +156,7 @@ close a session :
 ```
 $ screen -XS <session-id> quit
 ```
+detach from a session (exit while the process is still running):
+```
+Ctrl+a then d
+```
