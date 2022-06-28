@@ -46,6 +46,11 @@ except:
 #how frequent we upload data (in seconds)
 file_freq=3.17*60*60
 def upload_files():
+    reload(logging)
+
+    logging.basicConfig(level = logging.INFO, 
+                    filename =Log.get_log_path(),
+                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
     while(True):
         sleep_time=file_freq
         print('in upload_files()')
@@ -68,6 +73,12 @@ def upload_files():
 
 freq=2*60*60
 def upload_db():
+    reload(logging)
+
+    logging.basicConfig(level = logging.INFO, 
+                    filename =Log.get_log_path(),
+                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+
     print('in upload_db()')
     logging.info('starting the upload_db() function')
     while(True):
@@ -95,6 +106,7 @@ def upload_db():
                 #upload EMA tables to RDS
                 #ema_db.upoload_missing_data_ts(rds_connection,local_connection,'ema_data')
                 print('uploading reward_data table...')
+                logging.info('uploading reward_data table...')
                 try:
                     rds_connection=rds.RDS() 
                     local_connection=rds.Local()
@@ -104,6 +116,7 @@ def upload_db():
                     logging.error("in controller uploading data to reward_data in RDS "+str(e))
                     
                 print('uploading ema_storing_data table...')
+                logging.info('uploading ema_storing_data table...')
                 try:
                     rds_connection=rds.RDS() 
                     local_connection=rds.Local()
@@ -128,26 +141,36 @@ def upload_db():
                 sleep_time=freq-elapsed
         except Exception as e:
             print('Exception in controller ' + str(e))
+            logging.error("in controller uploading data to RDS "+str(e))
         if(sleep_time>60):
             time.sleep(int(sleep_time))
             
 #frequency to create missing data reports in seconds
 missing_data_freq=24*60*60
 def log_missing_data():
+    reload(logging)
+
+    logging.basicConfig(level = logging.INFO, 
+                    filename =Log.get_log_path(),
+                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
     while(True):
         ts_start=time.time()
         print("creating missing data reports...")
         print('creating ema_storing_data and reward_data missing logs...')
+        logging.info('creating ema_storing_data and reward_data missing logs...')
         try:
             missing_data.write_missing_log(rds_connection,local_connection)
         except Exception as e:
-            print('Exception in controller ' + str(e))
+            print('Exception in log_missing_data ' + str(e))
+            logging.error("Exception in log_missing_data "+str(e))
             
         print('creating a report file with details on missing files on cloud...')
+        logging.info('creating a report file with details on missing files on cloud...')
         try:
             missing_data.create_report_file()
         except Exception as e:
-            print('Exception in controller ' + str(e))
+            print('Exception in log_missing_data ' + str(e))
+            logging.error("Exception in log_missing_data "+str(e))
             
         ts_end=time.time()
         #elapsed time in seconds
@@ -161,12 +184,14 @@ heart_beat_freq=60*30
 def manage_heart_beat():
     while(True):
         print('hb')
+        logging.info('sending heart beat...')
         try:
             rds_connection=rds.RDS()
             if(isinstance(rds_connection,rds.RDS)):
                 res=heart_beat.insert_heart_beat(rds_connection)
         except:
             print('Exception in manage_heart_beat() ')
+            logging.error("Exception in manage_heart_beat "+str(e))
         time.sleep(heart_beat_freq)
 
 
