@@ -13,6 +13,8 @@ import hashlib
 import file_system_tasks
 import dep_data
 
+BUCKET_NAME='pcr-storage'
+
 #initialize bucket and return it
 def get_bucket():
     credentials=file_system_tasks.get_parameters('s3_credentials.txt')
@@ -24,8 +26,27 @@ def get_bucket():
         aws_secret_access_key=secret_key,
     )
     global pcr_storage
-    pcr_storage=s3.Bucket('pcr-storage')
+    pcr_storage=s3.Bucket(BUCKET_NAME)
     
+
+#list all items in a specific directory path in the bucket
+def get_files_in_dir(path,maxKeys):
+    s3 = boto3.client("s3") 
+    response = s3.list_objects_v2(
+                Bucket=BUCKET_NAME,
+                Prefix =path,
+                MaxKeys=maxKeys)
+    return response
+
+def read_lines_from_txt_file(file):
+    get_bucket()
+    obj=pcr_storage.Object(file)
+    content=obj.get()['Body'].read()
+    lines=content.decode('UTF-8').split('\n')
+    while("" in lines) :
+        lines.remove("")
+    return lines
+     
 #list all items in the bucket
 def list_items():
     obj_list=[]
