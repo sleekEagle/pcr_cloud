@@ -27,16 +27,14 @@ def get_bucket():
     )
     global pcr_storage
     pcr_storage=s3.Bucket(BUCKET_NAME)
+ 
     
 
 #list all items in a specific directory path in the bucket
 def get_files_in_dir(path,maxKeys):
-    s3 = boto3.client("s3") 
-    response = s3.list_objects_v2(
-                Bucket=BUCKET_NAME,
-                Prefix =path,
-                MaxKeys=maxKeys)
-    return response
+    get_bucket()
+    files=[obj.key for obj in pcr_storage.objects.filter(Prefix=path)] 
+    return files
 
 def read_lines_from_txt_file(file):
     get_bucket()

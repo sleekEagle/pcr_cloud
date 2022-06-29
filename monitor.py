@@ -85,7 +85,7 @@ def detect_new_deps():
 def slack_dep_RDS_stats(dep_num):
     path=dep_num+"/cloud_logs/missing_data/"
     r=s3_functions.get_files_in_dir(path,1000)
-    files=[item['Key'].split('/')[-1].split('.')[0] for item in r['Contents']]
+    files=[item.split('/')[-1].split('.')[0] for item in r]
     
     files.sort(key=lambda data:datetime.datetime.strptime(data,"%d-%m-%Y"))
     last_date=files[-1]
