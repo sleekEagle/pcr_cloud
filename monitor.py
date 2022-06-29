@@ -36,7 +36,7 @@ def monitor_hb():
             monitored_dep_ids,ignored_dep_ids=get_dep_ids()
             rds_connection=rds.RDS() 
             dep_ids=rds_connection.get_unique_values('heart_beat','dep_id')
-            valid_dep_ids=[d[0] for d in dep_ids if ((d[0] in monitored_dep_ids) and (d[0] not in ignored_dep_ids))]
+            valid_dep_ids=[d[0] for d in dep_ids if ((str(d[0]) in monitored_dep_ids) and (str(d[0]) not in ignored_dep_ids))]
             
             for dep_id in valid_dep_ids:
                 last_entry=rds_connection.get_last_entry('heart_beat',dep_id)
@@ -69,7 +69,7 @@ def detect_new_deps():
             monitored_dep_ids,ignored_dep_ids=get_dep_ids()
             rds_connection=rds.RDS()
             dep_ids=rds_connection.get_unique_values('heart_beat','dep_id')
-            new_dep_ids=[d[0] for d in dep_ids if ((d[0] not in monitored_dep_ids) and (d[0] not in ignored_dep_ids))]
+            new_dep_ids=[d[0] for d in dep_ids if ((str(d[0]) not in monitored_dep_ids) and (str(d[0]) not in ignored_dep_ids))]
             new_dep_ids_str=" , ".join([str(id) for id in new_dep_ids])
             if(len(new_dep_ids)>0):
                 message="New deployment/s detected. There id/s : " + new_dep_ids_str
