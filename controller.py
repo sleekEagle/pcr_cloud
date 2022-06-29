@@ -46,12 +46,12 @@ except:
 #how frequent we upload data (in seconds)
 file_freq=3.17*60*60
 def upload_files():
-    reload(logging)
-
-    logging.basicConfig(level = logging.INFO, 
-                    filename =Log.get_log_path(),
-                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
-    while(True):
+     while(True):
+        reload(logging)
+        logging.basicConfig(level = logging.INFO, 
+                        filename =Log.get_log_path(),
+                        format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+       
         sleep_time=file_freq
         print('in upload_files()')
         logging.info('starting the upload_files() function')
@@ -73,15 +73,16 @@ def upload_files():
 
 freq=2*60*60
 def upload_db():
-    reload(logging)
+      while(True):
+        reload(logging)
 
-    logging.basicConfig(level = logging.INFO, 
-                    filename =Log.get_log_path(),
-                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
-
-    print('in upload_db()')
-    logging.info('starting the upload_db() function')
-    while(True):
+        logging.basicConfig(level = logging.INFO, 
+                        filename =Log.get_log_path(),
+                        format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+    
+        print('in upload_db()')
+        logging.info('starting the upload_db() function')
+      
         print('uploading data to RDS db...')
         sleep_time=freq
         rds_connection=rds.RDS() 
@@ -148,12 +149,13 @@ def upload_db():
 #frequency to create missing data reports in seconds
 missing_data_freq=24*60*60
 def log_missing_data():
-    reload(logging)
+     while(True):
+         reload(logging)
 
-    logging.basicConfig(level = logging.INFO, 
-                    filename =Log.get_log_path(),
-                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
-    while(True):
+        logging.basicConfig(level = logging.INFO, 
+                        filename =Log.get_log_path(),
+                        format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+       
         ts_start=time.time()
         print("creating missing data reports...")
         print('creating ema_storing_data and reward_data missing logs...')
