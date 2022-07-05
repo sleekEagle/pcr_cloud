@@ -15,6 +15,7 @@ import s3_functions
 import file_system_tasks
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
+from threading import Timer
 
 #read the monitored and ignored deployment IDs from jason file
 def get_dep_ids():
@@ -110,22 +111,22 @@ def slack_dep_RDS_stats(dep_num):
     slack.post_slack(msg,'dep-stats')
 
 def RDS_stats():
-    while(True):
-        monitored_dep_ids,ignored_dep_ids=get_dep_ids()
-        for dep_id in monitored_dep_ids:
-            slack_dep_RDS_stats(dep_id)
-            
+    monitored_dep_ids,ignored_dep_ids=get_dep_ids()
+    for dep_id in monitored_dep_ids:
+        slack_dep_RDS_stats(dep_id)
+    
         x=datetime.datetime.today()
-        y=x.replace(day=x.day+1, hour=3, minute=0, second=0, microsecond=0)
-        #y=x.replace(day=x.day, hour=x.hour, minute=x.minute+1, second=x.second, microsecond=0)
+        #y=x.replace(day=x.day+1, hour=11, minute=13, second=0, microsecond=0)
+        y=x.replace(day=x.day, hour=x.hour, minute=x.minute+1, second=x.second, microsecond=0)
         delta_t=y-x
         secs=(delta_t.total_seconds()+1)
-        time.sleep(int(secs)) 
+        t=Timer(secs,RDS_stats)
+        t.start()
         
 threading.Thread(target=monitor_hb).start()
 threading.Thread(target=detect_new_deps).start()
-threading.Thread(target=RDS_stats).start()
-
+#threading.Thread(target=RDS_stats).start()
+RDS_stats()
   
     
     
