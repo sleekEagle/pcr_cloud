@@ -36,6 +36,13 @@ def get_files_in_dir(path,maxKeys):
     files=[obj.key for obj in pcr_storage.objects.filter(Prefix=path)] 
     return files
 
+def get_sorted_files(path,maxKeys):
+    get_bucket()
+    files=pcr_storage.objects.filter(Prefix=path)
+    files = [obj.key for obj in sorted(files, key=lambda x: x.last_modified, 
+                                       reverse=True)]
+    return files        
+
 def read_lines_from_txt_file(file):
     get_bucket()
     obj=pcr_storage.Object(file)

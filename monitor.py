@@ -16,12 +16,17 @@ import file_system_tasks
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from threading import Timer
+import numpy as np
 
 #read the monitored and ignored deployment IDs from jason file
 def get_dep_ids():
-    ids=file_system_tasks.get_parameters("dep_ids.json")
-    monitored_dep_ids=ids['monitored'].split(',')
-    ignored_dep_ids=ids['ignored'].split(',')
+    try:
+        ids=file_system_tasks.get_parameters("dep_ids.json")
+        monitored_dep_ids=ids['monitored'].split(',')
+        ignored_dep_ids=ids['ignored'].split(',')
+    except:
+        print('Exception in reading monitored dep IDs')
+        
     return monitored_dep_ids,ignored_dep_ids
 
 #time threshold in seconds if exceeded should be notified via slack
@@ -85,42 +90,72 @@ def detect_new_deps():
 
 def slack_dep_RDS_stats(dep_num):
     path=dep_num+"/cloud_logs/missing_data/"
-    r=s3_functions.get_files_in_dir(path,1000)
-    files=[item.split('/')[-1].split('.')[0] for item in r]
+    files=s3_functions.get_sorted_files(path,1000)
+    #files=[item.split('/')[-1].split('.')[0] for item in r]
     dep=path.split('/')[0]  
-    msg='*** deployment '+str(dep) +' ***\n'
+    msg='***************** deployment '+str(dep) +' *****************\n'
     if(len(files)>0):
-        files.sort(key=lambda data:datetime.datetime.strptime(data,"%d-%m-%Y"))
-        last_date=files[-1]
-        last_file=path+last_date+'.log'
+        #files.sort(key=lambda data:datetime.datetime.strptime(data,"%d-%m-%Y"))
+        last_file=files[0]
+        #last_file=path+last_date+'.log'
         
         lines=s3_functions.read_lines_from_txt_file(last_file)
         
         #find the last occurance of the logs on ema and reward data tables
-        last_ema_line=-1
+        last_ema_line_n=-1
         for i,line in enumerate(lines):
             if("ema_storing_data table" in line):
-                last_ema_line=i
+                last_ema_line_n=i
                 continue
             
-        last_reward_data=lines[last_ema_line-1].replace('\r','').replace("'",'')
-        last_ema_line=lines[-1].replace('\r','').replace("'",'')
+        msg+='*table name,last_update_date,#local rows,#cloud rows*\n'    
+        n_days=2
+        for i in range(n_days):
+            last_reward_data=lines[last_ema_line_n-1*(i+1)].replace('\r','').replace("'",'')
+            last_ema_line=lines[-1*(i+1)].replace('\r','').replace("'",'')
+            msg+='reward_data table, '+last_reward_data+'\n'
+            msg+='ema_storing_data table, '+last_ema_line+'\n' 
         
-        msg+='*table name,last_update_date,#local rows,#cloud rows*\n'
-        msg+='reward_data table, '+last_reward_data+'\n'
-        msg+='ema_storing_data table, '+last_ema_line+'\n'
     else:
         msg+='no log files uploaded'
     slack.post_slack(msg,'dep-stats')
+    
+
+def slack_emotion_counts(dep_num):
+    path=dep_num+"/generated_mood_classification/"
+    msg='*emotion counts*\n'
+    files=s3_functions.get_sorted_files(path,5000)
+    if(len(files)>0):
+        last_date=''
+        emotions=[]
+        for f in files:
+            emo,date=f.split('/')[-1].split(' ')
+            date=date[:-13]
+            if(len(last_date)==0):
+                last_date=date
+                emotions.append(emo)
+                continue
+            if(last_date!=date):
+                #a new date detected
+                break
+            emotions.append(emo)
+        freq=np.unique(emotions,return_counts=True)
+        msg+='date='+last_date+'\n'
+        for i in range(len(freq[0])):
+            msg+=str(freq[0][i])+' - '+str(freq[1][i])+'\n'
+    else:
+        msg+='Cannot find any emotion files'
+    slack.post_slack(msg,'dep-stats')
 
 def RDS_stats():
-    monitored_dep_ids,ignored_dep_ids=get_dep_ids()
-    for dep_id in monitored_dep_ids:
-        slack_dep_RDS_stats(dep_id)
+    monitored_dep_ids,ignored_demonitored_dep_idsp_ids=get_dep_ids()
+    for dep_num in monitored_dep_ids:
+        slack_dep_RDS_stats(dep_num)
+        slack_emotion_counts(dep_num)
     
         x=datetime.datetime.today()
         #y=x.replace(day=x.day+1, hour=11, minute=13, second=0, microsecond=0)
-        y=x.replace(day=x.day, hour=x.hour, minute=x.minute+1, second=x.second, microsecond=0)
+        y=x.replace(day=x.day, hour=x.hour, minute=x.minute+60, second=x.second, microsecond=0)
         delta_t=y-x
         secs=(delta_t.total_seconds()+1)
         t=Timer(secs,RDS_stats)
@@ -128,12 +163,10 @@ def RDS_stats():
         
 threading.Thread(target=monitor_hb).start()
 threading.Thread(target=detect_new_deps).start()
-#threading.Thread(target=RDS_stats).start()
-RDS_stats()        
-    
-    
-    
-    
+RDS_stats()  
+
+
+
     
     
     
