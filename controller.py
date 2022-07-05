@@ -152,34 +152,34 @@ def log_missing_data():
      while(True):
          reload(logging)
 
-        logging.basicConfig(level = logging.INFO, 
+         logging.basicConfig(level = logging.INFO, 
                         filename =Log.get_log_path(),
                         format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
        
-        ts_start=time.time()
-        print("creating missing data reports...")
-        print('creating ema_storing_data and reward_data missing logs...')
-        logging.info('creating ema_storing_data and reward_data missing logs...')
-        try:
-            missing_data.write_missing_log(rds_connection,local_connection)
-        except Exception as e:
-            print('Exception in log_missing_data ' + str(e))
-            logging.error("Exception in log_missing_data "+str(e))
+         ts_start=time.time()
+         print("creating missing data reports...")
+         print('creating ema_storing_data and reward_data missing logs...')
+         logging.info('creating ema_storing_data and reward_data missing logs...')
+         try:
+             missing_data.write_missing_log(rds_connection,local_connection)
+         except Exception as e:
+             print('Exception in log_missing_data ' + str(e))
+             logging.error("Exception in log_missing_data "+str(e))
             
-        print('creating a report file with details on missing files on cloud...')
-        logging.info('creating a report file with details on missing files on cloud...')
-        try:
-            missing_data.create_report_file()
-        except Exception as e:
-            print('Exception in log_missing_data ' + str(e))
-            logging.error("Exception in log_missing_data "+str(e))
+         print('creating a report file with details on missing files on cloud...')
+         logging.info('creating a report file with details on missing files on cloud...')
+         try:
+             missing_data.create_report_file()
+         except Exception as e:
+             print('Exception in log_missing_data ' + str(e))
+             logging.error("Exception in log_missing_data "+str(e))
             
-        ts_end=time.time()
-        #elapsed time in seconds
-        elapsed=(ts_end-ts_start)
-        sleep_time=missing_data_freq-elapsed    
-        if(sleep_time>60):
-            time.sleep(int(sleep_time))
+         ts_end=time.time()
+         #elapsed time in seconds
+         elapsed=(ts_end-ts_start)
+         sleep_time=missing_data_freq-elapsed    
+         if(sleep_time>60):
+             time.sleep(int(sleep_time))
             
 #frequency to enter heart beat in seconds            
 heart_beat_freq=60*30
