@@ -19,6 +19,8 @@ from threading import Timer
 import numpy as np
 import pandas as pd
 import schedule
+import datetime
+
 
 #read the monitored and ignored deployment IDs from jason file
 def get_dep_ids():
@@ -93,12 +95,14 @@ def detect_new_deps():
 def slack_dep_RDS_stats(dep_num):
     path=dep_num+"/cloud_logs/missing_data/"
     files=s3_functions.get_sorted_files(path,1000)
+    f=files[0]
+    dates=[datetime.datetime.strptime(f.split('/')[-1].split('.')[0], "%d-%m-%Y").date() for f in files]
+    last_file=path+str(max(dates).strftime("%d-%m-%Y"))+'.log'
     #files=[item.split('/')[-1].split('.')[0] for item in r]
     dep=path.split('/')[0]  
     msg='***************** deployment '+str(dep) +' *****************\n'
     if(len(files)>0):
         #files.sort(key=lambda data:datetime.datetime.strptime(data,"%d-%m-%Y"))
-        last_file=files[0]
         #last_file=path+last_date+'.log'
         
         lines=s3_functions.read_lines_from_txt_file(last_file)
