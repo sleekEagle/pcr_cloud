@@ -17,6 +17,8 @@ import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 from threading import Timer
 import numpy as np
+import pandas as pd
+import schedule
 
 #read the monitored and ignored deployment IDs from jason file
 def get_dep_ids():
@@ -124,25 +126,26 @@ def slack_dep_RDS_stats(dep_num):
 def slack_emotion_counts(dep_num):
     path=dep_num+"/generated_mood_classification/"
     msg='*emotion counts*\n'
-    files=s3_functions.get_sorted_files(path,5000)
+    files=s3_functions.get_sorted_files(path,10000)
     if(len(files)>0):
         last_date=''
+        dates=[]
         emotions=[]
         for f in files:
             emo,date=f.split('/')[-1].split(' ')
             date=date[:-13]
-            if(len(last_date)==0):
-                last_date=date
-                emotions.append(emo)
-                continue
-            if(last_date!=date):
-                #a new date detected
-                break
+            dates.append(date)
             emotions.append(emo)
-        freq=np.unique(emotions,return_counts=True)
+        df=pd.DataFrame()
+        df['date']=dates
+        df['emo']=emotions  
+        df.sort_values(by=['date'])
+        counts=df.groupby(['date','emo']).size()
+        last_date=max(dates)
         msg+='date='+last_date+'\n'
-        for i in range(len(freq[0])):
-            msg+=str(freq[0][i])+' - '+str(freq[1][i])+'\n'
+        emonames=counts[last_date].index
+        for e in emonames:
+            msg+=e+'-'+str(counts[last_date][e])+'\n'
     else:
         msg+='Cannot find any emotion files'
     slack.post_slack(msg,'dep-stats')
@@ -154,8 +157,8 @@ def RDS_stats():
         slack_emotion_counts(dep_num)
     
         x=datetime.datetime.today()
-        #y=x.replace(day=x.day+1, hour=11, minute=13, second=0, microsecond=0)
-        y=x.replace(day=x.day, hour=x.hour, minute=x.minute+60, second=x.second, microsecond=0)
+        y=x.replace(day=x.day+1, hour=11, minute=13, second=0, microsecond=0)
+        #y=x.replace(day=x.day, hour=x.hour, minute=x.minute+60, second=x.second, microsecond=0)
         delta_t=y-x
         secs=(delta_t.total_seconds()+1)
         t=Timer(secs,RDS_stats)
@@ -163,7 +166,9 @@ def RDS_stats():
         
 threading.Thread(target=monitor_hb).start()
 threading.Thread(target=detect_new_deps).start()
-RDS_stats()  
+
+schedule.every().day.at("01:00").do(RDS_stats)
+schedule.run_pending()
 
 
 
