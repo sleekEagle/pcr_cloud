@@ -63,10 +63,6 @@ def get_paths(items):
         paths.append(s[0:-1])
     return paths
 
-#get files in a specific directory
-s3.get_bucket()
-  
-
 def get_s3_files():
     s3.get_bucket()
     dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
