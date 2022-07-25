@@ -11,6 +11,9 @@ Before this delete all existing tables.
 4. select the security group ID
 5. edit inbout rules
 6. add rule with the new laptop's IP address
+7. If using a new computer or if AWS S3 credential were changed: 
+    * install aws cli : https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions
+    * setup credential for aws 
 
 ## Things to do when creating a new deployment to get access to s3
 1. goto AWS console
