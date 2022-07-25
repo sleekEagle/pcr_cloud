@@ -12,12 +12,12 @@ import os
 
 def get_log_path():
         log_dir=file_system_tasks.get_project_dir(-3)+'generated_data/cloud_logs/'
-        log_file=log_dir+str(time.strftime("%d-%m-%Y"))+'.log'
+        log_file=log_dir+str(time.strftime("%Y-%m-%d"))+'.log'
         return log_file
     
 def get_missing_data_log_path():
         log_dir=file_system_tasks.get_project_dir(-3)+'generated_data/cloud_logs/missing_data/'
-        log_file=log_dir+str(time.strftime("%d-%m-%Y"))+'.log'
+        log_file=log_dir+str(time.strftime("%Y-%m-%d"))+'.log'
         return log_file
     
 def write_log_entry(path,log_list,title):

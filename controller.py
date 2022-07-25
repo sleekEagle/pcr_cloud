@@ -26,7 +26,8 @@ reload(logging)
 
 logging.basicConfig(level = logging.INFO, 
                     filename =Log.get_log_path(),
-                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+                    format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s',
+                    force=True)
 
 #connect to local and cloud(RDS) databases
 try:
@@ -50,7 +51,8 @@ def upload_files():
         reload(logging)
         logging.basicConfig(level = logging.INFO, 
                         filename =Log.get_log_path(),
-                        format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+                        format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s',
+                        force=True)
        
         sleep_time=file_freq
         print('in upload_files()')
@@ -78,7 +80,8 @@ def upload_db():
 
         logging.basicConfig(level = logging.INFO, 
                         filename =Log.get_log_path(),
-                        format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+                        format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s',
+                        force=True)
     
         print('in upload_db()')
         logging.info('starting the upload_db() function')
@@ -154,7 +157,8 @@ def log_missing_data():
 
          logging.basicConfig(level = logging.INFO, 
                         filename =Log.get_log_path(),
-                        format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
+                        format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s',
+                        force=True)
        
          ts_start=time.time()
          print("creating missing data reports...")
