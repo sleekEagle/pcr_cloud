@@ -19,7 +19,6 @@ import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 import rds
 import missing_data
-import heart_beat
 
 from importlib import reload
 reload(logging)
@@ -72,6 +71,7 @@ def upload_files():
                 time.sleep(int(sleep_time))
          except Exception as e:
              logging.error("Exception in controller upload_files() function "+str(e))
+             time.sleep(60*60)
 
 
 freq=2*60*60
@@ -151,6 +151,7 @@ def upload_db():
                 time.sleep(int(sleep_time))
         except Exception as e:
             logging.error("in controller uploading data to RDS "+str(e))
+            time.sleep(60*60)
             
 #frequency to create missing data reports in seconds
 missing_data_freq=24*60*60
@@ -189,24 +190,9 @@ def log_missing_data():
                  time.sleep(int(sleep_time))
          except Exception as e:
              logging.error("Exception in log_missing_data "+str(e))
+             time.sleep(60*60)
             
-#frequency to enter heart beat in seconds            
-heart_beat_freq=60*30
-def manage_heart_beat():
-    while(True):
-        print('hb')
-        logging.info('sending heart beat...')
-        try:
-            rds_connection=rds.RDS()
-            if(isinstance(rds_connection,rds.RDS)):
-                res=heart_beat.insert_heart_beat(rds_connection)
-        except:
-            print('Exception in manage_heart_beat() ')
-            logging.error("Exception in manage_heart_beat "+str(e))
-        time.sleep(heart_beat_freq)
 
-
-threading.Thread(target=manage_heart_beat).start()
 threading.Thread(target=upload_db).start()
 threading.Thread(target=upload_files).start()
 threading.Thread(target=log_missing_data).start()
