@@ -19,6 +19,7 @@ import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
 import rds
 import missing_data
+import file_system_tasks
 
 from importlib import reload
 reload(logging)
@@ -165,9 +166,14 @@ def log_missing_data():
                             format = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)s - %(funcName)20s()] %(message)s')
            
              ts_start=time.time()
-             print("creating missing data reports...")
+             dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
+             print(dep_id)
              print('creating ema_storing_data and reward_data missing logs...')
              logging.info('creating ema_storing_data and reward_data missing logs...')
+             missing_data.insert_missing_data(rds_connection,local_connection,'reward_data','missing_reward_data','TimeSent')
+             missing_data.insert_missing_data(rds_connection,local_connection,'ema_storing_data','missing_ema_storing_data','time')
+             print('done uploading missing data rows')
+             '''
              try:
                  missing_data.write_missing_log(rds_connection,local_connection)
              except Exception as e:
@@ -181,7 +187,7 @@ def log_missing_data():
              except Exception as e:
                  print('Exception in log_missing_data ' + str(e))
                  logging.error("Exception in log_missing_data "+str(e))
-                
+             '''   
              ts_end=time.time()
              #elapsed time in seconds
              elapsed=(ts_end-ts_start)

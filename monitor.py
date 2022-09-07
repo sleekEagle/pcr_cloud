@@ -93,6 +93,33 @@ def detect_new_deps():
             time.sleep(int(sleep_time))   
 
 def slack_dep_RDS_stats(dep_num):
+    rds_connection=rds.RDS() 
+    reward_ncloud,reward_nlocal,reward_ts,ema_ncloud,ema_nloca,ema_tsl=-1,-1,-1,-1,-1,-1
+    last_entry=rds_connection.get_last_entry('missing_reward_data',dep_num)
+    if(len(last_entry)>0):
+        reward_ncloud=last_entry[0][3]
+        reward_nlocal=last_entry[0][2]
+        reward_ts=last_entry[0][1]
+    last_entry=rds_connection.get_last_entry('missing_ema_storing_data',dep_num)
+    if(len(last_entry)>0):
+        ema_ncloud=last_entry[0][3]
+        ema_nlocal=last_entry[0][2]
+        ema_ts=last_entry[0][1]
+    msg='***************** deployment '+str(dep_num) +' *****************\n'
+    msg+='*table name,ts,#local rows,#cloud rows*\n' 
+    if(not(reward_ts==-1)):
+        msg+="reward_data , " + str(reward_ts)+" , " + str(reward_nlocal)+" , " + str(reward_ncloud)+"\n"
+    else:
+        msg+="No data received from reward_data table yet"
+    if(not(ema_ts==-1)):
+        msg+="ema_storing_data , " + str(ema_ts)+" , " + str(ema_nlocal)+" , " + str(ema_ncloud)+"\n"
+    else:
+        msg+="No data received from ema_storing_data table yet"
+    slack.post_slack(msg,'dep-stats')
+
+
+'''
+def slack_dep_RDS_stats(dep_num):
     path=dep_num+"/cloud_logs/missing_data/"
     files=s3_functions.get_sorted_files(path,1000)
     f=files[0]
@@ -125,7 +152,7 @@ def slack_dep_RDS_stats(dep_num):
     else:
         msg+='no log files uploaded'
     slack.post_slack(msg,'dep-stats')
-    
+'''    
 
 def slack_emotion_counts(dep_num):
     path=dep_num+"/generated_mood_classification/"
