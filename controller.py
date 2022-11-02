@@ -184,7 +184,7 @@ def log_missing_data(sc):
     finally:
         sc.enter(missing_data_freq, 1, log_missing_data, (sc,))
     
-    
+#start tasks  
 s.enter(file_freq, 1, upload_files, (s,))
 s.enter(missing_data_freq, 1,log_missing_data, (s,))
 s.enter(upload_freq, 1, upload_db, (s,))
