@@ -185,14 +185,6 @@ def log_missing_data(sc):
         sc.enter(missing_data_freq, 1, log_missing_data, (sc,))
     
     
-
-
-            
-'''
-threading.Thread(target=upload_db).start()
-threading.Thread(target=upload_files).start()
-threading.Thread(target=log_missing_data).start()
-'''
 s.enter(file_freq, 1, upload_files, (s,))
 s.enter(missing_data_freq, 1,log_missing_data, (s,))
 s.enter(upload_freq, 1, upload_db, (s,))
