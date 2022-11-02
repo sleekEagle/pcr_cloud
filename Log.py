@@ -9,15 +9,18 @@ This logs errors/other strings form the PCR_cloud code
 import file_system_tasks
 import time
 import os
+import datetime
 
 def get_log_path():
+        now = datetime.datetime.now()
         log_dir=file_system_tasks.get_project_dir(-3)+'generated_data/cloud_logs/'
-        log_file=log_dir+str(time.strftime("%Y-%m-%d"))+'.log'
+        log_file=log_dir+str(now.strftime("%Y-%m-%d"))+'.log'
         return log_file
     
 def get_missing_data_log_path():
+        now = datetime.datetime.now()
         log_dir=file_system_tasks.get_project_dir(-3)+'generated_data/cloud_logs/missing_data/'
-        log_file=log_dir+str(time.strftime("%Y-%m-%d"))+'.log'
+        log_file=log_dir+str(now.strftime("%Y-%m-%d"))+'.log'
         return log_file
     
 def write_log_entry(path,log_list,title):
