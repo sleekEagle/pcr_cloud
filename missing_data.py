@@ -21,6 +21,7 @@ import rds
 import Log
 import logging
 import ema_db
+from datetime import date
 
 from importlib import reload
 reload(logging)
@@ -51,8 +52,9 @@ def insert_missing_data(rds_connection,local_connection,table_name,missing_table
     try:
         dep_id=dep_data.get_dep_id(file_system_tasks.get_project_dir(-3))
         start_date=dep_data.get_start_date()
-        cloud_count=rds_connection.get_num_rows_greaterthan_value(table_name,date_col_name,start_date,dep_id)
-        local_count=local_connection.get_num_rows_greaterthan_value(table_name,date_col_name,start_date)
+        today = date.today().strftime("%Y-%m-%d")
+        cloud_count=rds_connection.get_num_rows_greaterthan_value(table_name,date_col_name,today,dep_id)
+        local_count=local_connection.get_num_rows_greaterthan_value(table_name,date_col_name,today)
         col_names='dep_id,ts,local_count,cloud_count'
         ts=str(datetime.datetime.fromtimestamp(time.time()))
         values="\'"+str(dep_id)+"\'," +"\'"+ str(ts)+"\'," + "\'"+str(local_count)+"\',"+"\'"+str(cloud_count)+"\'"
