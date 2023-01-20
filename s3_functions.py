@@ -12,6 +12,7 @@ import Log
 import hashlib
 import file_system_tasks
 import dep_data
+import sys
 
 BUCKET_NAME='pcr-storage'
 
@@ -44,12 +45,16 @@ def get_sorted_files(path,maxKeys):
     return files        
 
 def read_lines_from_txt_file(file):
-    get_bucket()
-    obj=pcr_storage.Object(file)
-    content=obj.get()['Body'].read()
-    lines=content.decode('UTF-8').split('\n')
-    while("" in lines) :
-        lines.remove("")
+    lines=-1
+    try:
+        get_bucket()
+        obj=pcr_storage.Object(file)
+        content=obj.get()['Body'].read()
+        lines=content.decode('UTF-8').split('\n')
+        while("" in lines) :
+            lines.remove("")
+    except Exception:
+        print(sys.exc_info()[2])
     return lines
      
 #list all items in the bucket
