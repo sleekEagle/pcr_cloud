@@ -22,16 +22,17 @@ import schedule
 import datetime
 import time
 import sched
+import json
 
-parameter_path=''
+parameter_path='/home/ubuntu/dep_ids.json'
 
 def add_value_dep_ids(key,value):
     with open(parameter_path, 'r') as f:
-        param = json.load(f)
+        param = json.load(f)[0]
 
     param[key]+=','+value
     # Serializing json
-    json_object = json.dumps(param, indent=4)
+    json_object = json.dumps([param], indent=4)
     # Writing to sample.json
     with open(parameter_path, "w") as outfile:
         outfile.write(json_object)
@@ -89,8 +90,11 @@ def detect_new_deps(sc):
         if(len(new_dep_ids)>0):
             message="New deployment/s detected. There id/s : " + new_dep_ids_str
             slack.post_slack(message,'dep-monitor')
-    except:
-        print('Exception in detect_new_deps() ')
+            message="Adding this dep number to the monitored list..."
+            slack.post_slack(message,'dep-monitor')
+            add_value_dep_ids('monitored',new_dep_ids_str)
+    except Exception as e:
+        print('Exception in detect_new_deps() '+str(e))
 
     finally:
         sc.enter(newdp_freq,1,detect_new_deps,(sc,))      
@@ -212,10 +216,10 @@ def slack_emotion_counts(dep_num):
     slack.post_slack(msg,'dep-stats')
 
 
-stat_freq=1*60*60
+stat_freq=1*60#1*60*60
 #scheduled time in hours in 24hr format
 ran=False
-schedule_time=4
+schedule_time=14
 def RDS_stats(sc):
     global ran
     print("in RDS_stats")
@@ -228,8 +232,11 @@ def RDS_stats(sc):
         print("running dep stats...")
         monitored_dep_ids,ignored_demonitored_dep_idsp_ids=get_dep_ids()
         for dep_num in monitored_dep_ids:
-            slack_dep_RDS_stats(dep_num)
-            slack_emotion_counts(dep_num)
+            try:
+                slack_dep_RDS_stats(dep_num)
+                slack_emotion_counts(dep_num)
+            except Exception as e:
+                print(e)
         ran=True
     else:
         ran=False
